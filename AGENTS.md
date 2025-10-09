@@ -6,6 +6,7 @@ Actualizo el PRD: la app será un “decisor” con varios modos. La ruleta de 4
 
 Resolver decisiones al azar en segundos. Monetizar con banner fijo inferior.
 
+## 2. Alcance MVP (modos)
 
 1. **Cara o Sello**
 
