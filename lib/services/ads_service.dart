@@ -28,7 +28,7 @@ class AdsService {
       if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/6300978111';
       if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2934735716';
     }
-    // TODO: reemplazar por Ad Unit IDs de producción
+    // Nota: reemplaza con tus Ad Unit IDs de producción antes de publicar
     if (Platform.isAndroid) {
       return 'ca-app-pub-xxxxxxxxxxxxxxxx/xxxxxxxxxx';
     } else {

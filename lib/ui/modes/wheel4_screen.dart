@@ -56,7 +56,11 @@ class _Wheel4ScreenState extends State<Wheel4Screen> with SingleTickerProviderSt
       _seenToken = token;
       unawaited(_play());
     }
-    return Center(
+    final bgColor = _selected == null ? Colors.transparent : colors[_selected!];
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      color: bgColor,
+      child: Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -100,6 +104,6 @@ class _Wheel4ScreenState extends State<Wheel4Screen> with SingleTickerProviderSt
           ),
         ],
       ),
-    );
+    ));
   }
 }

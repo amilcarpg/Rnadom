@@ -15,7 +15,7 @@ class OptionItem {
   Map<String, dynamic> toJson() => {
         'id': id,
         'label': label,
-        'color': color.value,
+        'color': color.toARGB32(),
       };
 
   factory OptionItem.fromJson(Map<String, dynamic> json) => OptionItem(
@@ -24,4 +24,3 @@ class OptionItem {
         color: Color(json['color'] as int),
       );
 }
-
