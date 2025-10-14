@@ -71,10 +71,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            'DEcisor',
+                            'Decisor',
                             textAlign: TextAlign.center,
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: const Color(0xFF2D7FF9),
+                            style: theme.textTheme.titleLarge?.copyWith(
+                              color: theme.colorScheme.primary,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.4,
                             ),
@@ -94,22 +94,19 @@ class _HomeScreenState extends State<HomeScreen> {
                     padding: const EdgeInsets.symmetric(horizontal: 12.0),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade200,
+                        color: theme.colorScheme.onSurface.withOpacity(0.08),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: TabBar(
                         isScrollable: true,
                         labelPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        indicatorSize: TabBarIndicatorSize.tab,
                         indicator: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.colorScheme.surface,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: const [
-                            BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 2)),
+                            BoxShadow(color: Colors.black38, blurRadius: 8, offset: Offset(0, 2)),
                           ],
                         ),
-                        labelColor: Colors.black,
-                        unselectedLabelColor: Colors.black54,
                         tabs: [for (final m in modes) Tab(text: m.name)],
                       ),
                     ),
@@ -205,7 +202,8 @@ class _GradientCTA extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const colors = [Color(0xFF2D7FF9), Color(0xFF49A6FF)];
+    final scheme = Theme.of(context).colorScheme;
+    final colors = [scheme.primary, scheme.secondary];
     return SizedBox(
       width: 240,
       height: 48,
@@ -222,7 +220,7 @@ class _GradientCTA extends StatelessWidget {
         ),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: enabled ? colors : colors.map((c) => c.withValues(alpha: 0.5)).toList()),
+            gradient: LinearGradient(colors: enabled ? colors : colors.map((c) => c.withOpacity(0.5)).toList()),
             borderRadius: BorderRadius.circular(24),
           ),
           child: Center(

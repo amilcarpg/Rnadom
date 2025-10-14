@@ -75,6 +75,9 @@ class _Wheel4ScreenState extends State<Wheel4Screen> with SingleTickerProviderSt
                 physics: const NeverScrollableScrollPhysics(),
                 children: List.generate(4, (i) {
                   final selected = _selected == i;
+                  final Color textColor = (i == 0 || i == 3) // Amarillo o Verde
+                      ? Colors.black
+                      : Colors.white; // Azul o Rojo
                   return AnimatedContainer(
                     duration: const Duration(milliseconds: 250),
                     decoration: BoxDecoration(
@@ -84,7 +87,7 @@ class _Wheel4ScreenState extends State<Wheel4Screen> with SingleTickerProviderSt
                     child: Center(
                       child: Text(
                         labels[i],
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
                       ),
                     ),
                   );
@@ -98,7 +101,7 @@ class _Wheel4ScreenState extends State<Wheel4Screen> with SingleTickerProviderSt
             value: _selected == null ? '' : labels[_selected!],
             liveRegion: true,
             child: Text(
-              _selected == null ? '—' : labels[_selected!],
+              _selected == null ? '-' : labels[_selected!],
               style: Theme.of(context).textTheme.displayMedium,
             ),
           ),

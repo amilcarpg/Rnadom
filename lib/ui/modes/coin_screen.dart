@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'dart:ui' as ui;
 import 'package:provider/provider.dart';
 
 import '../../services/rng_service.dart';
@@ -12,6 +13,37 @@ class CoinScreen extends StatefulWidget {
 
   @override
   State<CoinScreen> createState() => _CoinScreenState();
+}
+
+class _CoinFace extends StatelessWidget {
+  final String? face; // 'Cara' | 'Sello' | null
+  const _CoinFace({required this.face});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: 140,
+      height: 140,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(colors: [scheme.primary, scheme.secondary]),
+        boxShadow: const [BoxShadow(color: Colors.black45, blurRadius: 12, offset: Offset(0, 4))],
+        border: Border.all(color: Colors.white70, width: 2),
+      ),
+      child: Center(
+        child: Text(
+          face == null ? '' : (face == 'Cara' ? 'CARA' : 'SELLO'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+            fontSize: 24,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateMixin {
@@ -61,8 +93,16 @@ class _CoinScreenState extends State<CoinScreen> with SingleTickerProviderStateM
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           RotationTransition(
-            turns: Tween<double>(begin: 0, end: 3).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
-            child: const Icon(Icons.monetization_on, size: 100),
+            turns: Tween<double>(begin: 0, end: 3).animate(
+              CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+            ),
+            child: ImageFiltered(
+              imageFilter: ui.ImageFilter.blur(
+                sigmaX: _controller.isAnimating ? 5 : 0,
+                sigmaY: _controller.isAnimating ? 5 : 0,
+              ),
+              child: _CoinFace(face: _result),
+            ),
           ),
           const SizedBox(height: 16),
           Semantics(
