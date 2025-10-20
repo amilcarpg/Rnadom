@@ -13,12 +13,16 @@ class PlayProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<T> runLocked<T>(Future<T> Function() action) async {
-    if (_playing) throw StateError('Already playing');
-    _playing = true;
-    notifyListeners();
+  Future<T?> runLocked<T>(Future<T> Function() action) async {
+    if (_playing) return null; // ignora si ya está en ejecución
+    
     try {
+      _playing = true;
+      notifyListeners();
       return await action();
+    } catch (e) {
+      // Log error if needed
+      rethrow;
     } finally {
       _playing = false;
       notifyListeners();
