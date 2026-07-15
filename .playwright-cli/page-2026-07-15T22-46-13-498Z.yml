@@ -1,0 +1,19 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - paragraph [ref=e5]: DECISIONES RÁPIDAS
+      - heading "Tira Suerte" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - button "Abrir historial" [ref=e8] [cursor=pointer]: ◷
+      - button "Abrir ajustes" [ref=e9] [cursor=pointer]: ☰
+  - navigation "Modo de decisión" [ref=e10]:
+    - button "Cara o sello" [ref=e11] [cursor=pointer]
+    - button "Número" [ref=e12] [cursor=pointer]
+    - button "4 colores" [ref=e13] [cursor=pointer]
+    - button "Personalizada" [active] [ref=e14] [cursor=pointer]
+  - generic [ref=e16]:
+    - generic [ref=e17]: ☺
+    - 'status "resultado: Sello" [ref=e21]': Sello
+  - generic [ref=e19]:
+    - button "JUGAR" [ref=e20] [cursor=pointer]
+    - paragraph

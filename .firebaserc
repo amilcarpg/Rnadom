@@ -1,0 +1,14 @@
+{
+  "projects": {
+    "default": "tirasuerte-focuzlab"
+  },
+  "targets": {
+    "tirasuerte-focuzlab": {
+      "hosting": {
+        "privacy": [
+          "tirasuerte-focuzlab"
+        ]
+      }
+    }
+  }
+}

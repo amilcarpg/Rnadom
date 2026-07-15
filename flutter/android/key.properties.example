@@ -1,0 +1,4 @@
+storePassword=change-me
+keyPassword=change-me
+keyAlias=decisor
+storeFile=C:\\path\\to\\decisor-release.jks

@@ -1,0 +1,21 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - heading "Tira Suerte" [level=1] [ref=e5]
+    - button "Abrir ajustes" [ref=e7] [cursor=pointer]: ☰
+  - navigation "Modo de decisión" [ref=e8]:
+    - button "Cara o sello ☺" [ref=e9] [cursor=pointer]
+    - button "Número ⚄" [ref=e10] [cursor=pointer]
+    - button "4 colores ◉" [ref=e11] [cursor=pointer]
+    - button "Personalizada ⠿" [ref=e12] [cursor=pointer]
+  - generic [ref=e14]:
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: ☺
+        - generic [ref=e19]: CARA
+      - generic [ref=e20]:
+        - generic [ref=e21]: S
+        - generic [ref=e22]: SELLO
+    - status "resultado" [ref=e23]: —
+  - generic [ref=e24]:
+    - button "JUGAR" [ref=e25] [cursor=pointer]
+    - paragraph

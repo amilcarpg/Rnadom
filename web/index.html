@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#2c3e50" />
+    <title>Tira Suerte</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="brand"><p class="eyebrow">DECISIONES RÁPIDAS</p><h1>Tira <span>Suerte</span></h1></div>
+        <div class="header-actions">
+          <button id="history-button" class="icon-button" aria-label="Abrir historial" title="Historial">◷</button>
+          <button id="settings-button" class="icon-button" aria-label="Abrir ajustes" title="Ajustes">☰</button>
+        </div>
+      </header>
+
+      <nav class="mode-tabs" aria-label="Modo de decisión">
+        <button class="mode-tab is-active" data-mode="coin">Cara o sello</button>
+        <button class="mode-tab" data-mode="number">Número</button>
+        <button class="mode-tab" data-mode="wheel4">4 colores</button>
+        <button class="mode-tab" data-mode="custom">Personalizada</button>
+      </nav>
+
+      <section id="mode-content" class="mode-content" aria-live="polite"></section>
+
+      <footer class="app-footer">
+        <button id="play-button" class="play-button">JUGAR</button>
+        <p id="play-help" class="play-help"></p>
+      </footer>
+    </main>
+
+    <dialog id="settings-dialog">
+      <form method="dialog" class="dialog-content">
+        <div class="dialog-header"><h2>Ajustes</h2><button class="icon-button" value="cancel" aria-label="Cerrar ajustes">×</button></div>
+        <label class="toggle-row"><span>Sonido</span><input id="sound-toggle" type="checkbox" role="switch" /></label>
+        <label class="toggle-row"><span>Vibración</span><input id="haptics-toggle" type="checkbox" role="switch" /></label>
+      </form>
+    </dialog>
+    <dialog id="option-dialog"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2 id="option-title">Opción</h2><button class="icon-button" value="cancel" aria-label="Cerrar">×</button></div><label>Texto<input id="dialog-option-label" type="text" maxlength="60" required /></label><label>Color<input id="dialog-option-color" type="color" class="color-input" /></label><button id="save-option" class="small-button" value="default">Guardar</button></form></dialog>
+    <dialog id="confirm-dialog"><form method="dialog" class="dialog-content"><h2>Eliminar opción</h2><p id="confirm-message"></p><div class="dialog-header"><button class="small-button" value="cancel">Cancelar</button><button id="confirm-action" class="small-button danger" value="default">Eliminar</button></div></form></dialog>
+    <dialog id="history-dialog"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2>Historial</h2><button class="icon-button" value="cancel" aria-label="Cerrar historial">×</button></div><button id="clear-history" class="small-button danger">Limpiar historial</button><ul id="history-list" class="option-list" aria-live="polite"></ul></form></dialog>
+
+    <template id="option-template">
+      <li class="option-row">
+        <span class="option-dot" aria-hidden="true"></span>
+        <span class="option-label"></span>
+        <span class="option-actions">
+          <button class="small-button edit-option">Editar</button>
+          <button class="small-button danger remove-option">Eliminar</button>
+        </span>
+      </li>
+    </template>
+    <script src="data.js"></script><script src="app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,2 @@
+// Copy this file to AdMob.xcconfig and set the production AdMob application ID.
+ADMOB_APP_ID = ca-app-pub-your-app-id~your-app-id

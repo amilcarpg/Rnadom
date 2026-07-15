@@ -43,3 +43,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Flutter app moved under /flutter
+/flutter/.dart_tool/
+/flutter/.flutter-plugins
+/flutter/.flutter-plugins-dependencies
+/flutter/.pub-cache/
+/flutter/.pub/
+/flutter/build/
+/flutter/android/app/debug
+/flutter/android/app/profile
+/flutter/android/app/release
+/flutter/android/key.properties
+/flutter/android/release.properties
+/flutter/android/*.jks
+/flutter/ios/Flutter/AdMob.xcconfig
+
+# Release credentials and platform identifiers
+/android/key.properties
+/ios/Flutter/AdMob.xcconfig

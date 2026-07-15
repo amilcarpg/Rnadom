@@ -1,0 +1,21 @@
+{
+  "hosting": [
+    {
+      "target": "privacy",
+      "public": "privacy",
+      "ignore": [
+        "firebase.json",
+        ".firebaserc",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "cleanUrls": true,
+      "rewrites": [
+        {
+          "source": "/politicadeprivacidad.html",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Identidad de Android y App ID de AdMob para una compilacion de produccion.
+# Copia este archivo como release.properties. No lo confirmes en Git.
+applicationId=com.focuzlab.tirasuerte
+adMobAppId=ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy

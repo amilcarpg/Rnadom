@@ -1,16 +1,26 @@
-# decisor
+# Tira Suerte
 
-A new Flutter project.
+Monorepo de un decisor aleatorio offline con dos clientes independientes:
 
-## Getting Started
+- [flutter/](flutter/README.md): Android, iOS y Windows con AdMob opcional.
+- [web/](web/README.md): navegador moderno, sin dependencias ni backend.
 
-This project is a starting point for a Flutter application.
+## Inicio rápido
 
-A few resources to get you started if this is your first Flutter project:
+```powershell
+Set-Location flutter
+flutter pub get
+flutter run
+```
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+La web se sirve como archivos estáticos desde `web/`. Los artefactos Flutter se generan bajo `flutter/build/`.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Capacidades comunes
+
+Cara o sello, número aleatorio, ruleta de cuatro colores, ruleta personalizada, sonido/vibración opcional e historial local de las últimas 50 jugadas. No hay cuentas, backend ni sincronización entre dispositivos.
+
+## Validación manual
+
+- Prueba teclado y lector de pantalla: el resultado debe anunciarse y no depender solo de color.
+- Prueba móvil, tablet y modo avión.
+- Borra o altera el almacenamiento local: ambas apps deben iniciar con valores seguros.
