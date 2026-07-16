@@ -1,6 +1,7 @@
 const MODE = Object.freeze({ coin: 'coin', number: 'number', wheel4: 'wheel4', custom: 'custom' });
 const MODES = Object.freeze(Object.values(MODE));
 const MODE_LABELS = Object.freeze({ [MODE.coin]: 'Cara o sello', [MODE.number]: 'Número', [MODE.wheel4]: '4 colores', [MODE.custom]: 'Personalizada' });
+const MODE_ICONS = Object.freeze({ [MODE.coin]: '☺', [MODE.number]: '#', [MODE.wheel4]: '◉', [MODE.custom]: '☷' });
 const WHEEL_COLORS = Object.freeze(['#F7D154', '#2D7FF9', '#E34D4D', '#28C76F']);
 const WHEEL_LABELS = Object.freeze(['Amarillo', 'Azul', 'Rojo', 'Verde']);
 const PLAY_DELAY = Object.freeze({ [MODE.coin]: 700, default: 1100 });
@@ -10,7 +11,11 @@ const state = { mode: MODE.coin, playing: false, ...DecisorData.load(localStorag
 const dom = {
   shell: document.querySelector('.app-shell'), content: document.querySelector('#mode-content'),
   playButton: document.querySelector('#play-button'), playHelp: document.querySelector('#play-help'),
-  tabs: [...document.querySelectorAll('.mode-tab')], optionTemplate: document.querySelector('#option-template'),
+  modeSelector: document.querySelector('#mode-selector'), modeSelectorLabel: document.querySelector('#mode-selector-label'),
+  modeSelectorIcon: document.querySelector('#mode-selector-icon'), modeDialog: document.querySelector('#mode-dialog'),
+  customEditorDialog: document.querySelector('#custom-editor-dialog'), customEditorCount: document.querySelector('#custom-editor-count'),
+  customOptionList: document.querySelector('#custom-option-list'), modeChoices: [...document.querySelectorAll('.mode-choice')],
+  optionTemplate: document.querySelector('#option-template'),
   settingsDialog: document.querySelector('#settings-dialog'), soundToggle: document.querySelector('#sound-toggle'),
   hapticsToggle: document.querySelector('#haptics-toggle'), optionDialog: document.querySelector('#option-dialog'),
   confirmDialog: document.querySelector('#confirm-dialog'), historyDialog: document.querySelector('#history-dialog'),
@@ -84,10 +89,23 @@ function updatePlayState() {
 
 function wheelMarkup(colors, labels) {
   const validColors = colors.map((color) => safeColor(color));
-  const step = 100 / validColors.length;
-  const gradient = validColors.map((color, index) => `${color} ${index * step}% ${(index + 1) * step}%`).join(', ');
+  if (validColors.length === 1) {
+    const legend = `<li><span style="background:${validColors[0]}" aria-hidden="true"></span>${escapeHtml(labels[0])}</li>`;
+    return `<div class="wheel-wrap" role="img" aria-label="Ruleta con 1 opción"><div class="wheel"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="49" fill="${validColors[0]}" stroke="#eef4f5" stroke-width="1.1" vector-effect="non-scaling-stroke" /></svg></div><span class="wheel-pointer" aria-hidden="true"></span></div><ul class="wheel-legend">${legend}</ul>`;
+  }
+  const sector = 360 / validColors.length;
+  const point = (angle) => {
+    const radians = angle * Math.PI / 180;
+    return `${(50 + 49 * Math.cos(radians)).toFixed(3)} ${(50 + 49 * Math.sin(radians)).toFixed(3)}`;
+  };
+  const sectors = validColors.map((color, index) => {
+    const start = -90 - sector / 2 + sector * index;
+    const end = start + sector;
+    const largeArc = sector > 180 ? 1 : 0;
+    return `<path d="M 50 50 L ${point(start)} A 49 49 0 ${largeArc} 1 ${point(end)} Z" fill="${color}" stroke="#eef4f5" stroke-width="1.1" vector-effect="non-scaling-stroke" />`;
+  }).join('');
   const legend = labels.map((label, index) => `<li><span style="background:${validColors[index]}" aria-hidden="true"></span>${escapeHtml(label)}</li>`).join('');
-  return `<div class="wheel-wrap" aria-label="Ruleta"><div class="wheel" style="background:conic-gradient(${gradient})"></div><span class="wheel-pointer" aria-hidden="true"></span></div><ul class="wheel-legend">${legend}</ul>`;
+  return `<div class="wheel-wrap" role="img" aria-label="Ruleta con ${labels.length} opciones"><div class="wheel"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">${sectors}</svg></div><span class="wheel-pointer" aria-hidden="true"></span></div><ul class="wheel-legend">${legend}</ul>`;
 }
 
 function renderCoin() {
@@ -109,13 +127,11 @@ function renderCustom() {
   const hasOptions = state.options.length > 0;
   const colors = state.options.map((option) => option.color);
   const labels = state.options.map((option) => option.label);
-  const wheel = hasOptions ? `<div class="panel">${wheelMarkup(colors, labels)}<div class="result-card" role="status" aria-label="resultado">—</div></div>` : '<p class="play-help">Agrega opciones para crear tu ruleta.</p>';
-  return `<section class="custom-panel"><div class="custom-header"><h2>Ruleta personalizada</h2><strong>${state.options.length}/12</strong></div><form id="add-option-form" class="add-form"><input id="option-label" maxlength="60" required placeholder="Nueva opción" aria-label="Texto de la opción" /><input id="option-color" class="color-input" type="color" value="#1ABC9C" aria-label="Color de la opción" /><button class="small-button"><span aria-hidden="true">＋</span> Agregar opción</button></form>${wheel}<ul class="option-list" aria-label="Opciones de la ruleta"></ul></section>`;
+  const wheel = hasOptions ? `${wheelMarkup(colors, labels)}<div class="result-card" role="status" aria-label="resultado">—</div>` : '<p class="empty-state">Agrega opciones para crear y girar tu propia ruleta.</p>';
+  return `<section class="custom-panel"><div class="custom-header"><h2>Ruleta personalizada</h2><strong>${state.options.length}/12</strong></div>${wheel}<button id="edit-options-button" class="edit-options-button" type="button">Editar opciones</button></section>`;
 }
 
 function renderOptionList() {
-  const list = dom.content.querySelector('.option-list');
-  if (!list) return;
   const fragment = document.createDocumentFragment();
   state.options.forEach((option, index) => {
     const item = dom.optionTemplate.content.cloneNode(true);
@@ -124,15 +140,23 @@ function renderOptionList() {
     item.querySelector('.option-label').textContent = option.label;
     fragment.append(item);
   });
-  list.replaceChildren(fragment);
+  dom.customOptionList.replaceChildren(fragment);
+  dom.customEditorCount.textContent = `${state.options.length}/12 opciones`;
+}
+
+function renderModeSelector() {
+  dom.modeSelectorLabel.textContent = MODE_LABELS[state.mode];
+  dom.modeSelectorIcon.textContent = MODE_ICONS[state.mode];
+  dom.modeSelector.setAttribute('aria-label', `Seleccionar modo: ${MODE_LABELS[state.mode]}`);
+  dom.modeChoices.forEach((choice) => choice.classList.toggle('is-active', choice.dataset.mode === state.mode));
 }
 
 function render() {
   const renderers = { [MODE.coin]: renderCoin, [MODE.number]: renderNumber, [MODE.wheel4]: renderWheel4, [MODE.custom]: renderCustom };
   dom.shell.className = `app-shell mode-${state.mode}`;
-  dom.tabs.forEach((tab) => tab.classList.toggle('is-active', tab.dataset.mode === state.mode));
+  renderModeSelector();
   dom.content.innerHTML = renderers[state.mode]();
-  if (state.mode === MODE.custom) renderOptionList();
+  renderOptionList();
   updatePlayState();
 }
 
@@ -264,10 +288,17 @@ function openHistory() {
 }
 
 function bindEvents() {
-  dom.tabs.forEach((tab) => tab.addEventListener('click', () => setMode(tab.dataset.mode)));
+  dom.modeSelector.addEventListener('click', () => dom.modeDialog.showModal());
+  dom.modeChoices.forEach((choice) => choice.addEventListener('click', () => {
+    setMode(choice.dataset.mode);
+    dom.modeDialog.close();
+  }));
   dom.playButton.addEventListener('click', play);
-  dom.content.addEventListener('submit', (event) => { if (event.target.id === 'add-option-form') { event.preventDefault(); addOption(event.target); } });
-  dom.content.addEventListener('click', (event) => {
+  document.querySelector('#add-option-form').addEventListener('submit', (event) => { event.preventDefault(); addOption(event.target); });
+  document.addEventListener('click', (event) => {
+    const closeButton = event.target.closest('[data-close-dialog]');
+    if (closeButton) document.querySelector(`#${closeButton.dataset.closeDialog}`)?.close();
+    if (event.target.closest('#edit-options-button')) dom.customEditorDialog.showModal();
     const action = event.target.closest('[data-option-action]');
     if (!action) return;
     const index = Number(action.closest('[data-option-index]')?.dataset.optionIndex);
