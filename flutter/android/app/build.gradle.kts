@@ -58,6 +58,9 @@ android {
 
     buildTypes {
         release {
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.create("release") {
                     keyAlias = keystoreProperties["keyAlias"] as String

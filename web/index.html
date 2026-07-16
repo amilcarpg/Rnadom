@@ -18,16 +18,16 @@
       </header>
 
       <nav class="mode-tabs" aria-label="Modo de decisión">
-        <button class="mode-tab is-active" data-mode="coin">Cara o sello</button>
-        <button class="mode-tab" data-mode="number">Número</button>
-        <button class="mode-tab" data-mode="wheel4">4 colores</button>
-        <button class="mode-tab" data-mode="custom">Personalizada</button>
+        <button type="button" class="mode-tab is-active" data-mode="coin">Cara o sello</button>
+        <button type="button" class="mode-tab" data-mode="number">Número</button>
+        <button type="button" class="mode-tab" data-mode="wheel4">4 colores</button>
+        <button type="button" class="mode-tab" data-mode="custom">Personalizada</button>
       </nav>
 
       <section id="mode-content" class="mode-content" aria-live="polite"></section>
 
       <footer class="app-footer">
-        <button id="play-button" class="play-button">JUGAR</button>
+        <button type="button" id="play-button" class="play-button">JUGAR</button>
         <p id="play-help" class="play-help"></p>
       </footer>
     </main>
@@ -48,8 +48,8 @@
         <span class="option-dot" aria-hidden="true"></span>
         <span class="option-label"></span>
         <span class="option-actions">
-          <button class="small-button edit-option">Editar</button>
-          <button class="small-button danger remove-option">Eliminar</button>
+          <button type="button" class="small-button edit-option" data-option-action="edit">Editar</button>
+          <button type="button" class="small-button danger remove-option" data-option-action="remove">Eliminar</button>
         </span>
       </li>
     </template>

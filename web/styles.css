@@ -107,7 +107,8 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
   .icon-button { width: 35px; height: 35px; border-radius: 11px; font-size: 1rem; }
   .brand h1 { font-size: 2.25rem; }
   .eyebrow { font-size: .56rem; }
-  .mode-tab { min-height: 42px; padding: 0 4px; font-size: .64rem; }
+  .mode-tab { min-height: 74px; padding: 0 4px; }
+  .mode-tab::after { width: 44px; height: 44px; font-size: 1.65rem; }
   .mode-content { min-height: 360px; }
   .number-form { gap: 11px; }
   .number-form label { min-height: 134px; border-width: 2px; border-radius: 20px; }
@@ -124,7 +125,6 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
 .mode-number .brand h1 span { color: inherit; }
 .mode-number .eyebrow, .mode-number .header-actions { display: none; }
 .mode-number .app-header { min-height: 96px; align-items: end; }
-.mode-number .mode-tabs { width: min(100%, 590px); justify-self: center; }
 .mode-number .mode-content { align-items: start; padding-top: clamp(38px, 8vh, 80px); }
 .mode-number .panel { gap: 38px; }
 .mode-number .number-form { width: min(100%, 610px); gap: clamp(15px, 5vw, 60px); }
@@ -154,7 +154,6 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
 .mode-custom .brand h1 span { color: inherit; }
 .mode-custom .eyebrow, .mode-custom .header-actions { display: none; }
 .mode-custom .app-header { min-height: 80px; align-items: end; }
-.mode-custom .mode-tabs { width: min(100%, 610px); justify-self: center; }
 .mode-custom .mode-content { align-items: start; padding-top: 36px; }
 .mode-custom .custom-panel { gap: 18px; }
 .mode-custom .custom-header { justify-content: space-between; color: var(--text); }
@@ -173,10 +172,8 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
 .mode-custom .app-footer { padding-top: 14px; }
 .mode-custom .play-button { width: min(100%, 620px); min-height: 78px; border-radius: 18px; font-size: clamp(1.6rem, 6vw, 2.8rem); }
 
-.mode-coin .app-shell { grid-template-rows: auto 1fr auto auto; }
 .mode-coin .app-header { order: 1; min-height: 94px; }
 .mode-coin .mode-content { order: 2; align-items: center; padding: 28px 0 40px; }
-.mode-coin .mode-tabs { order: 3; border-radius: 37px 37px 17px 17px; padding: 27px 14px 18px; border-color: #315168; background: linear-gradient(135deg, #102a3c, #0a1827); }
 .mode-coin .app-footer { order: 4; padding-top: 16px; }
 .mode-coin .brand h1 { color: var(--accent); font-size: clamp(2.4rem, 8vw, 4rem); }
 .mode-coin .brand h1 span { color: inherit; }
@@ -186,14 +183,6 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
 .mode-coin .icon-button { width: 52px; height: 52px; border-radius: 19px; font-size: 1.55rem; }
 .mode-coin .coin-scene { width: min(60vw, 350px); }
 .mode-coin .result-card { min-height: 170px; border-radius: 35px; font-size: clamp(3.3rem, 13vw, 6.2rem); }
-.mode-coin .mode-tab { min-height: 105px; border-radius: 22px; font-size: 0; }
-.mode-coin .mode-tab::after { display: grid; place-items: center; width: 56px; height: 56px; margin: auto; border: 2px solid #17354a; border-radius: 18px; color: #b5afaa; font-size: 2.2rem; }
-.mode-coin .mode-tab[data-mode="coin"]::after { content: "☺"; color: #c78c36; background: radial-gradient(circle, #ffe094, #bd7824); }
-.mode-coin .mode-tab[data-mode="number"]::after { content: "⚄"; }
-.mode-coin .mode-tab[data-mode="wheel4"]::after { content: "◉"; }
-.mode-coin .mode-tab[data-mode="custom"]::after { content: "⠿"; }
-.mode-coin .mode-tab.is-active { background: #0a2a3a; }
-.mode-coin .mode-tab.is-active::after { border-color: var(--accent); box-shadow: 0 0 13px #11d5c755; }
 .mode-coin .play-button { width: min(100%, 510px); min-height: 77px; border-radius: 999px; font-size: clamp(1.5rem, 6vw, 2.6rem); }
 
 @media (max-width: 460px) {
@@ -208,16 +197,4 @@ input[type="checkbox"] { width: 24px; height: 24px; accent-color: var(--accent);
   .mode-custom .option-row { min-height: 66px; }
   .mode-custom .option-label { font-size: 1rem; }
   .mode-coin .mode-content { padding: 18px 0 25px; }
-  .mode-coin .mode-tab { min-height: 74px; }
-  .mode-coin .mode-tab::after { width: 44px; height: 44px; font-size: 1.65rem; }
-}
-
-/* El selector de modos se mantiene idéntico en las cuatro pantallas. */
-.mode-number .mode-tabs, .mode-wheel4 .mode-tabs, .mode-custom .mode-tabs, .mode-coin .mode-tabs { order: 3; display: grid; width: 100%; padding: 27px 14px 18px; border: 2px solid #315168; border-radius: 37px 37px 17px 17px; background: linear-gradient(135deg, #102a3c, #0a1827); }
-.mode-number .mode-tab, .mode-wheel4 .mode-tab, .mode-custom .mode-tab, .mode-coin .mode-tab { min-height: 105px; border-radius: 22px; font-size: 0; }
-.mode-number .mode-tab::after, .mode-wheel4 .mode-tab::after, .mode-custom .mode-tab::after, .mode-coin .mode-tab::after { width: 56px; height: 56px; font-size: 2.2rem; }
-
-@media (max-width: 460px) {
-  .mode-number .mode-tab, .mode-wheel4 .mode-tab, .mode-custom .mode-tab, .mode-coin .mode-tab { min-height: 74px; }
-  .mode-number .mode-tab::after, .mode-wheel4 .mode-tab::after, .mode-custom .mode-tab::after, .mode-coin .mode-tab::after { width: 44px; height: 44px; font-size: 1.65rem; }
 }

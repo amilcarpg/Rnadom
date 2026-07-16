@@ -41,12 +41,20 @@ class StorageService {
     try {
       final raw =
           (await _prefs).getStringList(StorageKeys.customWheel) ?? const [];
-      return raw
-          .map((entry) =>
-              OptionItem.fromJson(jsonDecode(entry) as Map<String, dynamic>))
-          .where((item) => item.id.isNotEmpty && item.label.trim().isNotEmpty)
-          .take(12)
-          .toList(growable: false);
+      final items = <OptionItem>[];
+      for (final entry in raw) {
+        try {
+          final item =
+              OptionItem.fromJson(jsonDecode(entry) as Map<String, dynamic>);
+          if (item.id.isNotEmpty && item.label.trim().isNotEmpty) {
+            items.add(item);
+          }
+        } catch (_) {
+          // A damaged item must not make the rest of the saved wheel unusable.
+        }
+        if (items.length == 12) break;
+      }
+      return List.unmodifiable(items);
     } catch (_) {
       return const [];
     }
@@ -54,19 +62,26 @@ class StorageService {
 
   Future<void> saveCustomWheel(List<OptionItem> items) async {
     final prefs = await _prefs;
-    final list =
-        items.map((e) => jsonEncode(e.toJson())).toList(growable: false);
+    final list = items
+        .take(12)
+        .map((item) => jsonEncode(item.toJson()))
+        .toList(growable: false);
     await prefs.setStringList(StorageKeys.customWheel, list);
   }
 
   Future<List<Result>> loadHistory() async {
     try {
       final raw = (await _prefs).getStringList(StorageKeys.history) ?? const [];
-      return raw
-          .map((entry) =>
-              Result.fromJson(jsonDecode(entry) as Map<String, dynamic>))
-          .take(50)
-          .toList(growable: false);
+      final items = <Result>[];
+      for (final entry in raw) {
+        try {
+          items.add(Result.fromJson(jsonDecode(entry) as Map<String, dynamic>));
+        } catch (_) {
+          // Preserve valid history entries if one older entry is corrupt.
+        }
+        if (items.length == 50) break;
+      }
+      return List.unmodifiable(items);
     } catch (_) {
       return const [];
     }

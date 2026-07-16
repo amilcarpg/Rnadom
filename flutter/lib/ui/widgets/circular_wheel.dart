@@ -114,5 +114,21 @@ class _WheelPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _WheelPainter oldDelegate) =>
-      oldDelegate.items != items || oldDelegate.selectedIndex != selectedIndex;
+      oldDelegate.selectedIndex != selectedIndex ||
+      !_hasSamePaintData(oldDelegate.items, items);
+
+  bool _hasSamePaintData(List<OptionItem> previous, List<OptionItem> next) {
+    if (identical(previous, next)) return true;
+    if (previous.length != next.length) return false;
+    for (var index = 0; index < previous.length; index++) {
+      final oldItem = previous[index];
+      final newItem = next[index];
+      if (oldItem.id != newItem.id ||
+          oldItem.label != newItem.label ||
+          oldItem.color != newItem.color) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

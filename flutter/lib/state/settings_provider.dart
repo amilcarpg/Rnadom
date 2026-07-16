@@ -9,6 +9,7 @@ class SettingsProvider extends ChangeNotifier {
       const Settings(soundOn: true, hapticsOn: true, rangeMin: 1, rangeMax: 10);
   bool _loading = true;
   Object? _error;
+  Future<void> _writeQueue = Future.value();
 
   SettingsProvider({required this.storage});
 
@@ -31,12 +32,17 @@ class SettingsProvider extends ChangeNotifier {
   Future<void> update(Settings next) async {
     _settings = next;
     notifyListeners();
+    final write = _writeQueue.then<void>((_) => storage.saveSettings(next));
+    // Keep later user changes writable even when an earlier disk write fails.
+    _writeQueue = write.catchError((_) {});
     try {
-      await storage.saveSettings(_settings);
-      _error = null;
+      await write;
+      if (identical(_settings, next)) _error = null;
     } catch (error) {
-      _error = error;
-      notifyListeners();
+      if (identical(_settings, next)) {
+        _error = error;
+        notifyListeners();
+      }
     }
   }
 }

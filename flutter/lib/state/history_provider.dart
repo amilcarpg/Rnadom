@@ -9,6 +9,7 @@ class HistoryProvider extends ChangeNotifier {
   final StorageService storage;
   List<Result> _items = const [];
   bool _loading = true;
+  Future<void> _writeQueue = Future.value();
 
   List<Result> get items => _items;
   bool get loading => _loading;
@@ -22,12 +23,20 @@ class HistoryProvider extends ChangeNotifier {
   Future<void> add(Result result) async {
     _items = [result, ..._items].take(50).toList(growable: false);
     notifyListeners();
-    await storage.saveHistory(_items);
+    final snapshot = _items;
+    await _enqueueSave(snapshot);
   }
 
   Future<void> clear() async {
     _items = const [];
     notifyListeners();
-    await storage.saveHistory(_items);
+    await _enqueueSave(_items);
+  }
+
+  Future<void> _enqueueSave(List<Result> snapshot) {
+    final write = _writeQueue.then<void>((_) => storage.saveHistory(snapshot));
+    // A failed save is isolated so the next add/clear can still persist.
+    _writeQueue = write.catchError((_) {});
+    return write;
   }
 }

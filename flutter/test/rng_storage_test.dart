@@ -44,6 +44,22 @@ void main() {
     expect(items, isEmpty);
   });
 
+  test('Storage retains valid entries alongside corrupt saved entries',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      StorageKeys.history: <String>[
+        '{invalid',
+        '{"mode":"coin","value":"Cara","timestamp":"2026-01-01T00:00:00.000"}',
+      ],
+    });
+    final storage = StorageService();
+
+    final history = await storage.loadHistory();
+
+    expect(history, hasLength(1));
+    expect(history.single.value, 'Cara');
+  });
+
   test('Storage preserves only the latest fifty history entries', () async {
     SharedPreferences.setMockInitialValues({});
     final storage = StorageService();
