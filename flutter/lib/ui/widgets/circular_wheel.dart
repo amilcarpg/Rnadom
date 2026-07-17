@@ -105,11 +105,8 @@ class _WheelPainter extends CustomPainter {
     )..layout(maxWidth: radius * .7);
     final offset =
         center + Offset(math.cos(angle), math.sin(angle)) * (radius * .59);
-    canvas.save();
-    canvas.translate(offset.dx, offset.dy);
-    canvas.rotate(angle + math.pi / 2);
-    text.paint(canvas, Offset(-text.width / 2, -text.height / 2));
-    canvas.restore();
+    text.paint(canvas,
+        Offset(offset.dx - text.width / 2, offset.dy - text.height / 2));
   }
 
   @override

@@ -40,6 +40,10 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
     AppColors.green,
     AppColors.purple,
     AppColors.cyan,
+    AppColors.orange,
+    AppColors.pink,
+    AppColors.indigo,
+    AppColors.lime,
   ];
 
   @override
@@ -203,6 +207,79 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
     await _save();
   }
 
+  Future<void> _openOptionsEditor() => showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        showDragHandle: true,
+        builder: (sheetContext) => StatefulBuilder(
+          builder: (_, setSheetState) => SafeArea(
+            top: false,
+            child: SizedBox(
+              height: MediaQuery.sizeOf(sheetContext).height * .72,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(
+                    Spacing.l, Spacing.s, Spacing.l, Spacing.l),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text('Editar opciones',
+                              style:
+                                  Theme.of(sheetContext).textTheme.titleLarge),
+                        ),
+                        Text('${_items.length}/12',
+                            style: TextStyle(
+                                color:
+                                    Theme.of(sheetContext).colorScheme.primary,
+                                fontWeight: FontWeight.w700)),
+                      ],
+                    ),
+                    const SizedBox(height: Spacing.m),
+                    SizedBox(
+                      width: double.infinity,
+                      height: AppSizes.minTouchTarget,
+                      child: FilledButton.icon(
+                        onPressed: _items.length >= 12
+                            ? null
+                            : () async {
+                                await _addOrEdit();
+                                if (mounted) setSheetState(() {});
+                              },
+                        icon: const Icon(Icons.add),
+                        label:
+                            Text(AppLocalizations.of(sheetContext)!.addOption),
+                      ),
+                    ),
+                    const SizedBox(height: Spacing.m),
+                    Expanded(
+                      child: _items.isEmpty
+                          ? const _EmptyWheel()
+                          : ListView.separated(
+                              itemCount: _items.length,
+                              separatorBuilder: (_, __) =>
+                                  const SizedBox(height: Spacing.s),
+                              itemBuilder: (_, index) => _OptionTile(
+                                item: _items[index],
+                                onEdit: () async {
+                                  await _addOrEdit(_items[index]);
+                                  if (mounted) setSheetState(() {});
+                                },
+                                onRemove: () async {
+                                  await _remove(_items[index]);
+                                  if (mounted) setSheetState(() {});
+                                },
+                              ),
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
   String _colorName(Color color, AppLocalizations l10n) {
     if (color == AppColors.yellow) return l10n.yellow;
     if (color == AppColors.blue) return l10n.blue;
@@ -241,56 +318,47 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
             ],
           ),
           const SizedBox(height: Spacing.m),
-          SizedBox(
-            width: double.infinity,
-            height: AppSizes.minTouchTarget,
-            child: FilledButton.icon(
-              onPressed: _items.length >= 12 ? null : () => _addOrEdit(),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addOption),
-            ),
-          ),
-          const SizedBox(height: Spacing.m),
           if (_items.isEmpty)
             const Expanded(child: _EmptyWheel())
           else ...[
             Expanded(
-              flex: 3,
-              child: LayoutBuilder(
-                builder: (context, constraints) => Center(
-                  child: CircularWheel(
-                    items: _items,
-                    size: math.min(
-                        constraints.maxWidth * .62, constraints.maxHeight * .9),
-                    turns: Tween<double>(begin: 0, end: _turns).animate(
-                        CurvedAnimation(
-                            parent: _controller, curve: Curves.easeOutCubic)),
-                    selectedIndex: _selected == null
-                        ? null
-                        : _items.indexWhere((item) => item.id == _selected!.id),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) => CircularWheel(
+                      items: _items,
+                      size: math.min(constraints.maxWidth * .72,
+                          constraints.maxHeight * .68),
+                      turns: Tween<double>(begin: 0, end: _turns).animate(
+                          CurvedAnimation(
+                              parent: _controller, curve: Curves.easeOutCubic)),
+                      selectedIndex: _selected == null
+                          ? null
+                          : _items
+                              .indexWhere((item) => item.id == _selected!.id),
+                    ),
                   ),
-                ),
-              ),
-            ),
-            FractionallySizedBox(
-              widthFactor: .9,
-              child:
-                  ResultCard(value: _selected?.label, color: _selected?.color),
-            ),
-            const SizedBox(height: Spacing.s),
-            Expanded(
-              flex: 3,
-              child: ListView.separated(
-                itemCount: _items.length,
-                separatorBuilder: (_, __) => const SizedBox(height: Spacing.s),
-                itemBuilder: (_, index) => _OptionTile(
-                  item: _items[index],
-                  onEdit: () => _addOrEdit(_items[index]),
-                  onRemove: () => _remove(_items[index]),
-                ),
+                  const SizedBox(height: Spacing.m),
+                  FractionallySizedBox(
+                    widthFactor: .9,
+                    child: ResultCard(
+                        value: _selected?.label, color: _selected?.color),
+                  ),
+                ],
               ),
             ),
           ],
+          const SizedBox(height: Spacing.s),
+          SizedBox(
+            width: double.infinity,
+            height: AppSizes.minTouchTarget,
+            child: FilledButton.icon(
+              onPressed: _openOptionsEditor,
+              icon: const Icon(Icons.tune),
+              label: const Text('Editar opciones'),
+            ),
+          ),
         ],
       ),
     );

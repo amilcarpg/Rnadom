@@ -100,107 +100,103 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
     final enabled =
         context.select<PlayProvider, bool>((play) => play.canPlay(_activeMode));
     final playing = context.select<PlayProvider, bool>((play) => play.playing);
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppSizes.contentWidth),
-            child: Column(
-              children: [
-                const SizedBox(height: Spacing.s),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(l10n.appTitle,
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(color: scheme.primary)),
-                      ),
-                      IconButton(
-                          tooltip: l10n.history,
-                          onPressed: _openHistory,
-                          icon: const Icon(Icons.history)),
-                      IconButton(
-                          tooltip: l10n.settings,
-                          onPressed: _openSettings,
-                          icon: const Icon(Icons.settings)),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
-                  child: Semantics(
-                    button: true,
-                    label: l10n.selectMode,
-                    value: modes
-                        .firstWhere((mode) => mode.id == _activeMode)
-                        .localizedName(context),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: AppSizes.minTouchTarget,
-                      child: OutlinedButton.icon(
-                        onPressed: _openModeSelector,
-                        icon: Icon(_modeIcon(_activeMode)),
-                        label: Text(
-                          modes
-                              .firstWhere((mode) => mode.id == _activeMode)
-                              .localizedName(context),
-                          overflow: TextOverflow.ellipsis,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: RadialGradient(
+            center: Alignment(0, -1.15),
+            radius: 1.35,
+            colors: [Color(0xFF123656), AppPalette.background],
+          ),
+        ),
+        child: SafeArea(
+          child: Center(
+            child: ConstrainedBox(
+              constraints:
+                  const BoxConstraints(maxWidth: AppSizes.contentWidth),
+              child: Column(
+                children: [
+                  const SizedBox(height: Spacing.s),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(l10n.appTitle,
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleLarge
+                                  ?.copyWith(
+                                      color: AppPalette.textPrimary,
+                                      fontFamily: 'serif',
+                                      fontSize: 30,
+                                      fontWeight: FontWeight.w800)),
                         ),
-                        style: OutlinedButton.styleFrom(
-                          alignment: Alignment.centerLeft,
-                          side: BorderSide(color: scheme.primary),
-                        ),
-                      ),
+                        IconButton(
+                            tooltip: l10n.history,
+                            onPressed: _openHistory,
+                            icon: const Icon(Icons.history)),
+                        IconButton(
+                            tooltip: l10n.settings,
+                            onPressed: _openSettings,
+                            icon: const Icon(Icons.settings)),
+                      ],
                     ),
                   ),
-                ),
-                const SizedBox(height: Spacing.m),
-                Expanded(
-                  child: TabBarView(
-                    controller: _tabs,
-                    children: const [
-                      CoinScreen(),
-                      NumberScreen(),
-                      Wheel4Screen(),
-                      WheelCustomScreen()
-                    ],
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
+                    child: _ModeSelector(
+                      label: modes
+                          .firstWhere((mode) => mode.id == _activeMode)
+                          .localizedName(context),
+                      icon: _modeIcon(_activeMode),
+                      semanticLabel: l10n.selectMode,
+                      onPressed: _openModeSelector,
+                    ),
                   ),
-                ),
-                SafeArea(
-                  top: false,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: Spacing.xl, vertical: Spacing.s),
-                        child: _GradientCTA(
-                          enabled: enabled,
-                          onPressed: enabled
-                              ? () => context
-                                  .read<PlayProvider>()
-                                  .requestPlay(_activeMode)
-                              : null,
-                          text: playing ? l10n.playing : l10n.play,
+                  const SizedBox(height: Spacing.m),
+                  Expanded(
+                    child: TabBarView(
+                      controller: _tabs,
+                      children: const [
+                        CoinScreen(),
+                        NumberScreen(),
+                        Wheel4Screen(),
+                        WheelCustomScreen()
+                      ],
+                    ),
+                  ),
+                  SafeArea(
+                    top: false,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: Spacing.xl, vertical: Spacing.s),
+                          child: _GradientCTA(
+                            enabled: enabled,
+                            onPressed: enabled
+                                ? () => context
+                                    .read<PlayProvider>()
+                                    .requestPlay(_activeMode)
+                                : null,
+                            text: playing ? l10n.playing : l10n.play,
+                          ),
                         ),
-                      ),
-                      if (_banner != null)
-                        SizedBox(
-                            height: _banner!.size.height.toDouble(),
-                            child: AdWidget(ad: _banner!)),
-                    ],
+                        if (_banner != null)
+                          SizedBox(
+                              height: _banner!.size.height.toDouble(),
+                              child: AdWidget(ad: _banner!)),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -235,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen>
                         .update(settings.settings.copyWith(hapticsOn: value)),
               ),
               DropdownButtonFormField<String?>(
-                value: settings.settings.localeCode,
+                initialValue: settings.settings.localeCode,
                 decoration: InputDecoration(
                     labelText: AppLocalizations.of(context)!.language),
                 items: [
@@ -399,8 +395,8 @@ class _GradientCTA extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final colors = [scheme.primary, scheme.secondary];
     return SizedBox(
-      width: 240,
-      height: AppSizes.minTouchTarget,
+      width: double.infinity,
+      height: 56,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
@@ -415,12 +411,67 @@ class _GradientCTA extends StatelessWidget {
                     : colors
                         .map((color) => color.withValues(alpha: .5))
                         .toList()),
-            borderRadius: BorderRadius.circular(AppRadii.pill),
+            borderRadius: BorderRadius.circular(18),
           ),
           child: Center(
               child: Text(text,
                   style: const TextStyle(
                       fontWeight: FontWeight.w700, letterSpacing: .6))),
+        ),
+      ),
+    );
+  }
+}
+
+class _ModeSelector extends StatelessWidget {
+  const _ModeSelector({
+    required this.label,
+    required this.icon,
+    required this.semanticLabel,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final String semanticLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      value: label,
+      child: SizedBox(
+        width: double.infinity,
+        height: 52,
+        child: Material(
+          color: AppPalette.surfaceStrong,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: scheme.primary.withValues(alpha: .8)),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(18),
+            onTap: onPressed,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: Spacing.m),
+              child: Row(
+                children: [
+                  Icon(icon, color: scheme.primary),
+                  const SizedBox(width: Spacing.m),
+                  Expanded(
+                    child: Text(label,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                  Icon(Icons.keyboard_arrow_down_rounded,
+                      color: scheme.primary),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

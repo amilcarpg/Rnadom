@@ -7,16 +7,22 @@ class AppColors {
   static const green = Color(0xFF28C76F);
   static const purple = Color(0xFF9C27B0);
   static const cyan = Color(0xFF00BCD4);
+  static const orange = Color(0xFFFF8A1F);
+  static const pink = Color(0xFFEC4899);
+  static const indigo = Color(0xFF6366F1);
+  static const lime = Color(0xFF84CC16);
 }
 
 /// Paleta base de UI (lib/ui/AGENTS.md)
 class AppPalette {
-  static const background = Color(0xFF2C3E50); // ó 0xFF2D3250
+  static const background = Color(0xFF020D1B);
+  static const surface = Color(0xFF091A2B);
+  static const surfaceStrong = Color(0xFF061524);
   static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFFBDC3C7); // ó 0xFFA9A9A9
-  static const accent = Color(0xFF1ABC9C); // ó 0xFF4ECDC4
-  static const accentDark = Color(0xFF16A085); // ó 0xFF3BA082
-  static const separator = Color(0xFF4A6572); // ó 0xFF3B3B3B
+  static const textSecondary = Color(0xFFAEB8C7);
+  static const accent = Color(0xFF12D6C1);
+  static const accentDark = Color(0xFF079D98);
+  static const separator = Color(0xFF294057);
 }
 
 /// Espaciado basado en grid de 8pt

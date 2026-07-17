@@ -117,7 +117,6 @@ class _CoinFace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     final l10n = AppLocalizations.of(context)!;
     return Semantics(
       image: true,
@@ -127,28 +126,30 @@ class _CoinFace extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(colors: [scheme.primary, scheme.secondary]),
+          gradient: const RadialGradient(
+            center: Alignment(-.35, -.42),
+            colors: [Color(0xFFFFE49A), Color(0xFFD99427), Color(0xFF7A4111)],
+            stops: [.04, .62, 1],
+          ),
           boxShadow: const [
             BoxShadow(
                 color: Colors.black45, blurRadius: 12, offset: Offset(0, 4))
           ],
-          border: Border.all(
-              color: scheme.onPrimary.withValues(alpha: .7), width: 2),
+          border: Border.all(color: const Color(0xFFFFE4A0), width: 3),
         ),
         child: Padding(
           padding: const EdgeInsets.all(Spacing.s),
           child: DecoratedBox(
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                  color: scheme.onPrimary.withValues(alpha: .45), width: 2),
+              border: Border.all(color: const Color(0xFF8D5517), width: 5),
             ),
             child: Center(
               child: Icon(
                 isHeads
                     ? Icons.sentiment_very_satisfied_rounded
                     : Icons.workspace_premium_rounded,
-                color: scheme.onPrimary,
+                color: const Color(0xFF714310),
                 size: size * .46,
               ),
             ),

@@ -26,10 +26,15 @@ class ResultCard extends StatelessWidget {
             horizontal: Spacing.xl, vertical: Spacing.l),
         decoration: BoxDecoration(
           color: isResult
-              ? (color ?? scheme.surface)
-              : scheme.surface.withValues(alpha: 0.55),
-          borderRadius: BorderRadius.circular(AppRadii.medium),
-          border: Border.all(color: scheme.primary.withValues(alpha: 0.5)),
+              ? (color ?? AppPalette.surface)
+              : AppPalette.surface.withValues(alpha: .9),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+              color: scheme.primary.withValues(alpha: .65), width: 2),
+          boxShadow: const [
+            BoxShadow(
+                color: Color(0x66000000), blurRadius: 18, offset: Offset(0, 8))
+          ],
         ),
         child: Center(
           child: Text(

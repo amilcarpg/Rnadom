@@ -93,7 +93,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get invalidIntegers => 'Ingresa dos números enteros.';
 
   @override
-  String get minimumLessThanMaximum => 'El mínimo debe ser menor que el máximo.';
+  String get minimumLessThanMaximum =>
+      'El mínimo debe ser menor que el máximo.';
 
   @override
   String get rangeLimit => 'Usa valores entre -1e9 y 1e9.';

@@ -108,43 +108,56 @@ class _NumberScreenState extends State<NumberScreen>
     final loading =
         context.select<SettingsProvider, bool>((state) => state.loading);
     if (loading) return const Center(child: CircularProgressIndicator());
-    return Padding(
-      padding: const EdgeInsets.all(Spacing.l),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(l10n.numberRange,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(height: Spacing.m),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Expanded(child: _numberField(_minCtrl, l10n.minimum)),
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: Spacing.s),
-                child: Icon(Icons.arrow_forward),
-              ),
-              Expanded(child: _numberField(_maxCtrl, l10n.maximum)),
-            ],
+    return LayoutBuilder(
+      builder: (context, constraints) => Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxWidth: 520,
+            maxHeight: constraints.maxHeight,
           ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.only(top: Spacing.s),
-              child: Text(_error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error)),
-            ),
-          const SizedBox(height: Spacing.xl),
-          ScaleTransition(
-            scale: Tween<double>(begin: .85, end: 1).animate(CurvedAnimation(
-                parent: _controller, curve: Curves.easeOutBack)),
-            child: FractionallySizedBox(
-              widthFactor: .9,
-              child: _FlipNumberCard(value: _result),
+          child: Padding(
+            padding: const EdgeInsets.all(Spacing.l),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(l10n.numberRange,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w700)),
+                const SizedBox(height: Spacing.m),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(child: _numberField(_minCtrl, l10n.minimum)),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: Spacing.s),
+                      child: Icon(Icons.arrow_forward),
+                    ),
+                    Expanded(child: _numberField(_maxCtrl, l10n.maximum)),
+                  ],
+                ),
+                if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: Spacing.s),
+                    child: Text(_error!,
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.error)),
+                  ),
+                const SizedBox(height: Spacing.xl),
+                ScaleTransition(
+                  scale: Tween<double>(begin: .85, end: 1).animate(
+                      CurvedAnimation(
+                          parent: _controller, curve: Curves.easeOutBack)),
+                  child: FractionallySizedBox(
+                    widthFactor: .9,
+                    child: _FlipNumberCard(value: _result),
+                  ),
+                ),
+              ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

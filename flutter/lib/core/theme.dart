@@ -5,7 +5,7 @@ import 'constants.dart';
 ThemeData buildTheme() {
   final base = ThemeData.dark(useMaterial3: true);
   const scheme = ColorScheme.dark(
-    surface: AppPalette.background,
+    surface: AppPalette.surface,
     primary: AppPalette.accent,
     secondary: AppPalette.accentDark,
     error: AppColors.red,
@@ -36,7 +36,7 @@ ThemeData buildTheme() {
     textTheme: textTheme,
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
-      fillColor: Color(0x33222A33),
+      fillColor: AppPalette.surfaceStrong,
       border: OutlineInputBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide.none),
@@ -46,7 +46,7 @@ ThemeData buildTheme() {
       style: ElevatedButton.styleFrom(
           minimumSize: const Size(160, 48), shape: const StadiumBorder()),
     ),
-    tabBarTheme: const TabBarTheme(
+    tabBarTheme: const TabBarThemeData(
       indicatorSize: TabBarIndicatorSize.tab,
       labelColor: Colors.white,
       unselectedLabelColor: Color(0xB3FFFFFF),
