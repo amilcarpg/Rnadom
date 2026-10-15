@@ -53,6 +53,8 @@ flutter build ipa --release
 
 ## Firebase Analytics opcional
 
+La app fija `firebase_core` en 4.2.1 y `firebase_analytics` en 12.0.4 para mantener compatibilidad con Kotlin 2.2.0 del proyecto. Las actualizaciones de Firebase deben validarse también compilando Android release.
+
 La app incluye `firebase_core` y `firebase_analytics`, pero la colección queda desactivada por defecto hasta configurar un proyecto real. No se han incluido identificadores de Firebase de ejemplo ni de producción.
 
 Para Android/iOS, configura la app en Firebase y ejecuta con `--dart-define=ANALYTICS_ENABLED=true`. Se admite la configuración nativa habitual o proporcionar las opciones explícitas:
