@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#061524" />
     <title>Tira Suerte</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -21,7 +22,7 @@
         <span id="mode-selector-icon" aria-hidden="true"></span><span id="mode-selector-label"></span><span class="selector-chevron" aria-hidden="true">⌄</span>
       </button>
 
-      <section id="mode-content" class="mode-content" aria-live="polite"></section>
+      <section id="mode-content" class="mode-content"></section>
 
       <footer class="app-footer">
         <p id="play-help" class="play-help" aria-live="polite"></p>
@@ -44,15 +45,17 @@
     <dialog id="custom-editor-dialog" class="sheet-dialog custom-editor-dialog" aria-labelledby="custom-editor-title">
       <div class="dialog-content custom-editor-content">
         <div class="dialog-header"><div><h2 id="custom-editor-title">Editar opciones</h2><p id="custom-editor-count" class="dialog-subtitle"></p></div><button class="icon-button" type="button" data-close-dialog="custom-editor-dialog" aria-label="Cerrar editor de opciones">×</button></div>
-        <form id="add-option-form" class="add-form"><input id="option-label" maxlength="60" required placeholder="Nueva opción" aria-label="Texto de la opción" /><input id="option-color" class="color-input" type="color" value="#1ABC9C" aria-label="Color de la opción" /><button class="small-button" type="submit"><span aria-hidden="true">＋</span> Agregar</button></form>
+        <form id="add-option-form" class="add-form"><textarea id="option-label" rows="3" maxlength="731" required placeholder="Una opción por línea" aria-label="Opciones, una por línea" aria-describedby="options-help"></textarea><input id="option-color" class="color-input" type="color" value="#1ABC9C" aria-label="Color de la opción" /><button id="add-options-button" class="small-button" type="submit"><span aria-hidden="true">＋</span> Agregar</button></form>
+        <p id="options-help" class="dialog-subtitle">Una opción por línea · Hasta 60 caracteres por opción · Máximo 12.</p>
+        <div class="presets" aria-label="Agregar un ejemplo"><span>Agregar ejemplo:</span><button type="button" class="small-button" data-preset="food">Qué comemos</button><button type="button" class="small-button" data-preset="yesno">Sí / No</button></div>
         <ul id="custom-option-list" class="option-list" aria-label="Opciones de la ruleta"></ul>
       </div>
     </dialog>
 
-    <dialog id="settings-dialog"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2>Ajustes</h2><button class="icon-button" value="cancel" aria-label="Cerrar ajustes">×</button></div><label class="toggle-row"><span>Sonido</span><input id="sound-toggle" type="checkbox" role="switch" /></label><label class="toggle-row"><span>Vibración</span><input id="haptics-toggle" type="checkbox" role="switch" /></label></form></dialog>
-    <dialog id="option-dialog"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2 id="option-title">Opción</h2><button class="icon-button" value="cancel" aria-label="Cerrar">×</button></div><label>Texto<input id="dialog-option-label" type="text" maxlength="60" required /></label><label>Color<input id="dialog-option-color" type="color" class="color-input" /></label><button id="save-option" class="small-button" value="default">Guardar</button></form></dialog>
-    <dialog id="confirm-dialog"><form method="dialog" class="dialog-content"><h2>Eliminar opción</h2><p id="confirm-message"></p><div class="dialog-header"><button class="small-button" value="cancel">Cancelar</button><button id="confirm-action" class="small-button danger" value="default">Eliminar</button></div></form></dialog>
-    <dialog id="history-dialog"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2>Historial</h2><button class="icon-button" value="cancel" aria-label="Cerrar historial">×</button></div><button id="clear-history" class="small-button danger">Limpiar historial</button><ul id="history-list" class="option-list" aria-live="polite"></ul></form></dialog>
+    <dialog id="settings-dialog" aria-label="Ajustes"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2>Ajustes</h2><button class="icon-button" value="cancel" aria-label="Cerrar ajustes">×</button></div><label class="toggle-row"><span>Sonido</span><input id="sound-toggle" type="checkbox" role="switch" /></label><label class="toggle-row"><span>Vibración</span><input id="haptics-toggle" type="checkbox" role="switch" /></label></form></dialog>
+    <dialog id="option-dialog" aria-label="Opción"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2 id="option-title">Opción</h2><button class="icon-button" value="cancel" formnovalidate aria-label="Cerrar">×</button></div><label>Texto<input id="dialog-option-label" type="text" maxlength="60" required /></label><label>Color<input id="dialog-option-color" type="color" class="color-input" /></label><button id="save-option" class="small-button" value="default">Guardar</button></form></dialog>
+    <dialog id="confirm-dialog" aria-label="Eliminar opción"><form method="dialog" class="dialog-content"><h2>Eliminar opción</h2><p id="confirm-message"></p><div class="dialog-header"><button class="small-button" value="cancel">Cancelar</button><button id="confirm-action" class="small-button danger" value="default">Eliminar</button></div></form></dialog>
+    <dialog id="history-dialog" aria-label="Historial"><form method="dialog" class="dialog-content"><div class="dialog-header"><h2>Historial</h2><button class="icon-button" value="cancel" aria-label="Cerrar historial">×</button></div><button id="clear-history" class="small-button danger">Limpiar historial</button><ul id="history-list" class="option-list" aria-live="polite"></ul></form></dialog>
 
     <template id="option-template"><li class="option-row"><span class="option-dot" aria-hidden="true"></span><span class="option-label"></span><span class="option-actions"><button type="button" class="small-button edit-option" data-option-action="edit">Editar</button><button type="button" class="small-button danger remove-option" data-option-action="remove">Eliminar</button></span></li></template>
     <script src="data.js"></script><script src="app.js"></script>

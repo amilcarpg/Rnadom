@@ -24,3 +24,11 @@ Los ajustes, opciones e historial (máximo 50 jugadas) permanecen solo en `local
 ## Límites actuales
 
 No incluye PWA, analítica, anuncios ni sincronización entre navegadores.
+
+## Interacción
+
+- Se bloquean cambios de modo y edición mientras se sortea; el estado muestra “Sorteando…” hasta el resultado.
+- El editor admite una opción por línea (hasta 12, con 60 caracteres cada una), ejemplos opcionales y deshacer la última eliminación. El historial también permite deshacer su limpieza.
+- Las áreas de juego tienen desplazamiento propio para pantallas horizontales, texto ampliado y teclado. El CTA queda separado del contenido.
+- Se respeta `prefers-reduced-motion`; el texto sobre resultados de color se calcula por contraste. Los botones táctiles tienen al menos 48 px.
+- Si el navegador bloquea el acceso a almacenamiento, se puede seguir jugando sin persistencia.

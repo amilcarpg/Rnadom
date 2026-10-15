@@ -7,7 +7,11 @@ const WHEEL_LABELS = Object.freeze(['Amarillo', 'Azul', 'Rojo', 'Verde']);
 const PLAY_DELAY = Object.freeze({ [MODE.coin]: 700, default: 1100 });
 const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
-const state = { mode: MODE.coin, playing: false, ...DecisorData.load(localStorage) };
+function loadBrowserState() {
+  try { return DecisorData.load(window.localStorage); }
+  catch (_) { return DecisorData.snapshot({}); }
+}
+const state = { mode: MODE.coin, playing: false, ...loadBrowserState() };
 const dom = {
   shell: document.querySelector('.app-shell'), content: document.querySelector('#mode-content'),
   playButton: document.querySelector('#play-button'), playHelp: document.querySelector('#play-help'),
@@ -26,7 +30,7 @@ let coinRotation = 0;
 let wheelRotation = 0;
 
 function persist() {
-  try { DecisorData.save(localStorage, state); } catch (_) { /* La persistencia no puede bloquear el juego. */ }
+  try { DecisorData.save(window.localStorage, state); } catch (_) { /* La persistencia no puede bloquear el juego. */ }
 }
 
 function escapeHtml(value) {
@@ -73,7 +77,7 @@ function showResult(value, color = '') {
   const resultColor = safeColor(color, '');
   resultCard.textContent = value;
   resultCard.style.background = resultColor;
-  resultCard.style.color = ['#F7D154', '#28C76F'].includes(resultColor.toUpperCase()) ? '#111' : '';
+  resultCard.style.color = resultColor ? DecisorData.readableForeground(resultColor) : '';
   resultCard.setAttribute('aria-label', `resultado: ${value}`);
   state.history = DecisorData.appendHistory(state.history, { mode: state.mode, value, timestamp: new Date().toISOString() });
   persist();
@@ -84,7 +88,12 @@ function updatePlayState() {
   const needsOptions = state.mode === MODE.custom && state.options.length === 0;
   dom.playButton.disabled = state.playing || needsOptions;
   dom.playButton.textContent = state.playing ? 'JUGANDO…' : 'JUGAR';
-  dom.playHelp.textContent = needsOptions ? 'Agrega al menos una opción para jugar.' : '';
+  dom.modeSelector.disabled = state.playing;
+  dom.content.querySelectorAll('input, #edit-options-button').forEach((control) => { control.disabled = state.playing; });
+  dom.customEditorDialog.querySelectorAll('input, textarea, button:not([data-close-dialog])').forEach((control) => { control.disabled = state.playing; });
+  document.querySelector('#add-options-button').disabled = state.playing || state.options.length >= 12;
+  document.querySelectorAll('[data-preset]').forEach((button) => { button.disabled = state.playing || state.options.length >= 12; });
+  dom.playHelp.textContent = state.playing ? 'Espera el resultado…' : needsOptions ? 'Agrega al menos una opción para jugar.' : '';
 }
 
 function wheelMarkup(colors, labels) {
@@ -110,16 +119,16 @@ function wheelMarkup(colors, labels) {
 
 function renderCoin() {
   coinRotation = 0;
-  return `<section class="panel coin-panel"><div class="coin-scene" aria-hidden="true"><div class="coin"><div class="coin-face coin-face--heads"><span>☺</span><small>CARA</small></div><div class="coin-face coin-face--tails"><span>S</span><small>SELLO</small></div></div></div><div class="result-card" role="status" aria-label="resultado">—</div></section>`;
+  return `<section class="panel coin-panel"><div class="coin-scene" aria-hidden="true"><div class="coin"><div class="coin-face coin-face--heads"><span>☺</span><small>CARA</small></div><div class="coin-face coin-face--tails"><span>S</span><small>SELLO</small></div></div></div><div class="result-card" role="status" aria-label="resultado" aria-atomic="true">—</div></section>`;
 }
 
 function renderNumber() {
-  return `<section class="panel"><form class="number-form" novalidate><label>Mínimo<input id="min-input" type="number" step="1" value="${state.settings.min}" /></label><label>Máximo<input id="max-input" type="number" step="1" value="${state.settings.max}" /></label></form><p class="error" aria-live="polite"></p><div class="result-card" role="status" aria-label="resultado">—</div></section>`;
+  return `<section class="panel"><form class="number-form" novalidate><label>Mínimo<input id="min-input" type="number" step="1" value="${state.settings.min}" /></label><label>Máximo<input id="max-input" type="number" step="1" value="${state.settings.max}" /></label></form><p class="error" aria-live="polite"></p><div class="result-card" role="status" aria-label="resultado" aria-atomic="true">—</div></section>`;
 }
 
 function renderWheel4() {
   wheelRotation = 0;
-  return `<section class="panel">${wheelMarkup(WHEEL_COLORS, WHEEL_LABELS)}<div class="result-card" role="status" aria-label="resultado">—</div></section>`;
+  return `<section class="panel">${wheelMarkup(WHEEL_COLORS, WHEEL_LABELS)}<div class="result-card" role="status" aria-label="resultado" aria-atomic="true">—</div></section>`;
 }
 
 function renderCustom() {
@@ -127,8 +136,8 @@ function renderCustom() {
   const hasOptions = state.options.length > 0;
   const colors = state.options.map((option) => option.color);
   const labels = state.options.map((option) => option.label);
-  const wheel = hasOptions ? `${wheelMarkup(colors, labels)}<div class="result-card" role="status" aria-label="resultado">—</div>` : '<p class="empty-state">Agrega opciones para crear y girar tu propia ruleta.</p>';
-  return `<section class="custom-panel"><div class="custom-header"><h2>Ruleta personalizada</h2><strong>${state.options.length}/12</strong></div>${wheel}<button id="edit-options-button" class="edit-options-button" type="button">Editar opciones</button></section>`;
+  const wheel = hasOptions ? `${wheelMarkup(colors, labels)}<div class="result-card" role="status" aria-label="resultado" aria-atomic="true">—</div>` : '<p class="empty-state">Agrega opciones para crear y girar tu propia ruleta.</p>';
+  return `<section class="custom-panel"><div class="custom-header"><h2>Ruleta personalizada</h2><strong>${state.options.length}/12</strong></div>${wheel}<p class="probability-help">Todas las opciones tienen la misma probabilidad.</p><button id="edit-options-button" class="edit-options-button" type="button">Editar opciones</button></section>`;
 }
 
 function renderOptionList() {
@@ -138,17 +147,19 @@ function renderOptionList() {
     item.querySelector('.option-row').dataset.optionIndex = String(index);
     item.querySelector('.option-dot').style.background = safeColor(option.color);
     item.querySelector('.option-label').textContent = option.label;
+    item.querySelector('.edit-option').setAttribute('aria-label', `Editar ${option.label}`);
+    item.querySelector('.remove-option').setAttribute('aria-label', `Eliminar ${option.label}`);
     fragment.append(item);
   });
   dom.customOptionList.replaceChildren(fragment);
-  dom.customEditorCount.textContent = `${state.options.length}/12 opciones`;
+  dom.customEditorCount.textContent = `${state.options.length}/12 opciones · Máximo 12`;
 }
 
 function renderModeSelector() {
   dom.modeSelectorLabel.textContent = MODE_LABELS[state.mode];
   dom.modeSelectorIcon.textContent = MODE_ICONS[state.mode];
   dom.modeSelector.setAttribute('aria-label', `Seleccionar modo: ${MODE_LABELS[state.mode]}`);
-  dom.modeChoices.forEach((choice) => choice.classList.toggle('is-active', choice.dataset.mode === state.mode));
+  dom.modeChoices.forEach((choice) => { choice.classList.toggle('is-active', choice.dataset.mode === state.mode); choice.setAttribute('aria-pressed', String(choice.dataset.mode === state.mode)); });
 }
 
 function render() {
@@ -161,14 +172,14 @@ function render() {
 }
 
 function validNumberRange() {
-  const min = Number(dom.content.querySelector('#min-input')?.value);
-  const max = Number(dom.content.querySelector('#max-input')?.value);
-  const isValid = Number.isInteger(min) && Number.isInteger(max) && min < max && min >= -1e9 && max <= 1e9;
-  if (!isValid) {
-    const error = dom.content.querySelector('.error');
-    if (error) error.textContent = 'Usa enteros entre -1e9 y 1e9 y mínimo menor que máximo.';
+  const range = DecisorData.parseRange(dom.content.querySelector('#min-input')?.value, dom.content.querySelector('#max-input')?.value);
+  const error = dom.content.querySelector('.error');
+  if (!range) {
+    if (error) error.textContent = 'Completa ambos campos con enteros entre −1 000 000 000 y 1 000 000 000. El mínimo debe ser menor que el máximo.';
     return null;
   }
+  if (error) error.textContent = '';
+  const { min, max } = range;
   state.settings.min = min;
   state.settings.max = max;
   persist();
@@ -188,15 +199,15 @@ function rotateWheel(wheel, index, optionsCount) {
   wheel.style.transform = `rotate(${wheelRotation}deg)`;
 }
 
-function getOutcome(mode, range) {
+function getOutcome(mode, range, options) {
   if (mode === MODE.coin) return { value: randomIndex(2) === 0 ? 'Cara' : 'Sello' };
   if (mode === MODE.number) return { value: String(range.min + randomIndex(range.max - range.min + 1)) };
   if (mode === MODE.wheel4) {
     const index = randomIndex(WHEEL_LABELS.length);
     return { value: WHEEL_LABELS[index], color: WHEEL_COLORS[index], index, optionsCount: WHEEL_LABELS.length };
   }
-  const index = randomIndex(state.options.length);
-  return { value: state.options[index].label, color: state.options[index].color, index, optionsCount: state.options.length };
+  const index = randomIndex(options.length);
+  return { value: options[index].label, color: options[index].color, index, optionsCount: options.length };
 }
 
 function showPlayError(error) {
@@ -208,7 +219,8 @@ function showPlayError(error) {
 function delay(milliseconds) { return new Promise((resolve) => setTimeout(resolve, milliseconds)); }
 
 async function play() {
-  if (state.playing) return;
+  if (state.playing || dom.customEditorDialog.open || dom.optionDialog.open || dom.confirmDialog.open) return;
+  if (state.mode === MODE.custom && !state.options.length) return;
   const mode = state.mode;
   const range = mode === MODE.number ? validNumberRange() : null;
   if (mode === MODE.number && !range) return;
@@ -216,13 +228,21 @@ async function play() {
   state.playing = true;
   updatePlayState();
   try {
-    const outcome = getOutcome(mode, range);
+    const outcome = getOutcome(mode, range, state.options.map((option) => ({ ...option })));
+    const resultCard = getResultCard();
+    if (resultCard) {
+      resultCard.textContent = 'Sorteando…';
+      resultCard.style.background = '';
+      resultCard.style.color = '';
+      resultCard.setAttribute('aria-label', 'Sorteando');
+    }
     const coin = dom.content.querySelector('.coin');
     const wheel = dom.content.querySelector('.wheel');
     if (coin) rotateCoin(coin, outcome.value);
     if (wheel && Number.isInteger(outcome.index)) rotateWheel(wheel, outcome.index, outcome.optionsCount);
-    await delay(PLAY_DELAY[mode] || PLAY_DELAY.default);
+    await delay(window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : (PLAY_DELAY[mode] || PLAY_DELAY.default));
     showResult(outcome.value, outcome.color);
+    dom.content.querySelectorAll('.wheel-legend li').forEach((item, index) => item.classList.toggle('is-winner', index === outcome.index));
   } catch (error) {
     showPlayError(error);
   } finally {
@@ -237,24 +257,48 @@ function setMode(mode) {
   render();
 }
 
+function notify(message, undo) {
+  const host = [...document.querySelectorAll('dialog[open]')].at(-1) || dom.shell;
+  let notice = host.querySelector('.notice');
+  if (!notice) { notice = document.createElement('div'); notice.className = 'notice'; notice.setAttribute('role', 'status'); host.append(notice); }
+  notice.replaceChildren(document.createTextNode(message));
+  if (undo) {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'small-button'; button.textContent = 'Deshacer';
+    button.addEventListener('click', () => { if (state.playing) return; undo(); persist(); render(); notice.remove(); }, { once: true });
+    notice.append(button);
+  }
+}
+
+function addLabels(text, color) {
+  if (state.playing) return false;
+  const labels = text.split(/\r?\n/).map((label) => label.trim()).filter(Boolean);
+  if (!labels.length) { notify('Escribe al menos una opción.'); return false; }
+  if (labels.some((label) => label.length > 60)) { notify('Cada opción admite hasta 60 caracteres.'); return false; }
+  if (labels.length + state.options.length > 12) { notify(`Puedes agregar ${12 - state.options.length} opciones más. Máximo 12.`); return false; }
+  labels.forEach((label, index) => state.options.push({ label, color: index === 0 ? safeColor(color) : WHEEL_COLORS[(state.options.length) % WHEEL_COLORS.length] }));
+  persist(); render();
+  notify(`${labels.length} opciones agregadas.`);
+  return true;
+}
+
 function addOption(form) {
-  if (state.options.length >= 12) return;
-  const label = form.querySelector('#option-label').value.trim();
-  if (!label) return;
-  state.options.push({ label, color: safeColor(form.querySelector('#option-color').value) });
-  persist();
-  render();
+  if (addLabels(form.querySelector('#option-label').value, form.querySelector('#option-color').value)) {
+    form.querySelector('#option-label').value = '';
+    form.querySelector('#option-label').focus();
+  }
 }
 
 function openOptionDialog(index) {
   const option = state.options[index];
-  if (!option) return;
+  if (state.playing || !option) return;
   document.querySelector('#option-title').textContent = 'Editar opción';
   document.querySelector('#dialog-option-label').value = option.label;
   document.querySelector('#dialog-option-color').value = option.color;
+  dom.optionDialog.returnValue = '';
   dom.optionDialog.showModal();
   dom.optionDialog.addEventListener('close', function saveOption() {
-    if (dom.optionDialog.returnValue === 'default') {
+    if (!state.playing && dom.optionDialog.returnValue === 'default') {
       const label = document.querySelector('#dialog-option-label').value.trim();
       if (label) { option.label = label; option.color = safeColor(document.querySelector('#dialog-option-color').value); persist(); render(); }
     }
@@ -263,29 +307,37 @@ function openOptionDialog(index) {
 
 function openConfirmDialog(index) {
   const option = state.options[index];
-  if (!option) return;
+  if (state.playing || !option) return;
   document.querySelector('#confirm-message').textContent = `¿Eliminar "${option.label}" de la ruleta?`;
+  dom.confirmDialog.returnValue = '';
   dom.confirmDialog.showModal();
   dom.confirmDialog.addEventListener('close', function removeOption() {
-    if (dom.confirmDialog.returnValue === 'default') { state.options.splice(index, 1); persist(); render(); }
+    if (!state.playing && dom.confirmDialog.returnValue === 'default') {
+      state.options.splice(index, 1); persist(); render();
+      notify('Opción eliminada.', () => {
+        if (state.options.length < 12 && !state.options.includes(option)) state.options.splice(Math.min(index, state.options.length), 0, option);
+      });
+    }
   }, { once: true });
 }
 
-function openHistory() {
+function openHistoryContent() {
   const list = document.querySelector('#history-list');
   const fragment = document.createDocumentFragment();
   state.history.forEach((item) => {
     const row = document.createElement('li');
     row.className = 'option-row';
-    row.textContent = `${MODE_LABELS[item.mode] || item.mode} · ${item.value} · ${new Date(item.timestamp).toLocaleString()}`;
+    row.textContent = `${MODE_LABELS[item.mode] || item.mode} · ${item.value} · ${new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(item.timestamp))}`;
     fragment.append(row);
   });
   if (!fragment.childNodes.length) {
     const empty = document.createElement('li'); empty.className = 'option-row'; empty.textContent = 'Aún no hay jugadas.'; fragment.append(empty);
   }
   list.replaceChildren(fragment);
-  dom.historyDialog.showModal();
+  document.querySelector('#clear-history').disabled = !state.history.length;
 }
+
+function openHistory() { openHistoryContent(); dom.historyDialog.showModal(); }
 
 function bindEvents() {
   dom.modeSelector.addEventListener('click', () => dom.modeDialog.showModal());
@@ -294,11 +346,17 @@ function bindEvents() {
     dom.modeDialog.close();
   }));
   dom.playButton.addEventListener('click', play);
+  dom.content.addEventListener('submit', (event) => { event.preventDefault(); play(); });
+  dom.content.addEventListener('input', () => { const error = dom.content.querySelector('.error'); if (error) error.textContent = ''; });
+  document.querySelectorAll('[data-preset]').forEach((button) => button.addEventListener('click', () => {
+    const labels = button.dataset.preset === 'food' ? 'Pizza\nPollo\nEnsalada' : 'Sí\nNo';
+    addLabels(labels, WHEEL_COLORS[0]);
+  }));
   document.querySelector('#add-option-form').addEventListener('submit', (event) => { event.preventDefault(); addOption(event.target); });
   document.addEventListener('click', (event) => {
     const closeButton = event.target.closest('[data-close-dialog]');
     if (closeButton) document.querySelector(`#${closeButton.dataset.closeDialog}`)?.close();
-    if (event.target.closest('#edit-options-button')) dom.customEditorDialog.showModal();
+    if (!state.playing && event.target.closest('#edit-options-button')) { dom.customEditorDialog.showModal(); updatePlayState(); }
     const action = event.target.closest('[data-option-action]');
     if (!action) return;
     const index = Number(action.closest('[data-option-index]')?.dataset.optionIndex);
@@ -312,7 +370,12 @@ function bindEvents() {
     state.settings.soundOn = dom.soundToggle.checked; state.settings.hapticsOn = dom.hapticsToggle.checked; persist();
   }));
   document.querySelector('#history-button').addEventListener('click', openHistory);
-  document.querySelector('#clear-history').addEventListener('click', (event) => { event.preventDefault(); state.history = []; persist(); dom.historyDialog.close(); });
+  document.querySelector('#clear-history').addEventListener('click', (event) => {
+    event.preventDefault();
+    if (!state.history.length) return;
+    const previous = state.history; state.history = []; persist(); openHistoryContent();
+    notify('Historial eliminado.', () => { state.history = [...state.history, ...previous].slice(0, 50); openHistoryContent(); });
+  });
 }
 
 bindEvents();

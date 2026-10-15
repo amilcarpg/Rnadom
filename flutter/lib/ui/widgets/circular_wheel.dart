@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../../core/constants.dart';
+import '../../core/accessibility.dart';
 import '../../domain/option_item.dart';
 
 class CircularWheel extends StatelessWidget {
@@ -20,22 +21,50 @@ class CircularWheel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
-      child: Stack(
-        alignment: Alignment.topCenter,
-        clipBehavior: Clip.none,
-        children: [
-          RotationTransition(
-            turns: turns,
-            child: CustomPaint(
-              size: Size.square(size),
-              painter:
-                  _WheelPainter(items: items, selectedIndex: selectedIndex),
-            ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ExcludeSemantics(
+            child: RepaintBoundary(
+          child: Stack(
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.none,
+            children: [
+              RotationTransition(
+                turns: turns,
+                child: CustomPaint(
+                  size: Size.square(size),
+                  painter:
+                      _WheelPainter(items: items, selectedIndex: selectedIndex),
+                ),
+              ),
+              const _WheelPointer(),
+            ],
           ),
-          const _WheelPointer(),
-        ],
-      ),
+        )),
+        const SizedBox(height: Spacing.m),
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: Spacing.m,
+          runSpacing: Spacing.s,
+          children: [
+            for (var index = 0; index < items.length; index++)
+              Semantics(
+                  selected: selectedIndex == index,
+                  child: Row(mainAxisSize: MainAxisSize.min, children: [
+                    Icon(
+                        selectedIndex == index
+                            ? Icons.check_circle
+                            : Icons.circle,
+                        color: items[index].color),
+                    const SizedBox(width: Spacing.xs),
+                    Flexible(
+                        child: Text(items[index].label,
+                            style: Theme.of(context).textTheme.bodySmall)),
+                  ])),
+          ],
+        ),
+      ],
     );
   }
 }
@@ -92,11 +121,9 @@ class _WheelPainter extends CustomPainter {
       text: TextSpan(
         text: item.label,
         style: TextStyle(
-            color: item.color.computeLuminance() > .45
-                ? Colors.black
-                : Colors.white,
+            color: readableForeground(item.color),
             fontWeight: FontWeight.w700,
-            fontSize: 12),
+            fontSize: AppSizes.wheelLabelSize),
       ),
       maxLines: 2,
       ellipsis: '…',

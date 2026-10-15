@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -23,7 +25,11 @@ class DecisorApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => RngService()),
         Provider(create: (_) => AdsService()),
-        Provider(create: (_) => AnalyticsService()),
+        Provider(create: (_) {
+          final analytics = AnalyticsService();
+          unawaited(analytics.init());
+          return analytics;
+        }),
         Provider(create: (_) => FeedbackService()),
         Provider(create: (_) => StorageService()),
         ChangeNotifierProvider(create: (_) => PlayProvider()),
@@ -32,8 +38,10 @@ class DecisorApp extends StatelessWidget {
               HistoryProvider(storage: ctx.read<StorageService>())..load(),
         ),
         ChangeNotifierProvider(
-          create: (ctx) =>
-              SettingsProvider(storage: ctx.read<StorageService>())..load(),
+          create: (ctx) => SettingsProvider(
+              storage: ctx.read<StorageService>(),
+              analytics: ctx.read<AnalyticsService>())
+            ..load(),
         ),
       ],
       child: Consumer<SettingsProvider>(

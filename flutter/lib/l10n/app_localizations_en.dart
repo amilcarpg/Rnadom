@@ -176,4 +176,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get customColor => 'custom';
+
+  @override
+  String get editOptions => 'Edit options';
+
+  @override
+  String get equalChance => 'Every option has the same probability.';
+
+  @override
+  String get bulkOptions => 'Options, one per line';
+
+  @override
+  String get optionsHelp =>
+      'One option per line · Up to 60 characters each · Maximum 12.';
+
+  @override
+  String get foodPreset => 'What to eat';
+
+  @override
+  String get yesNoPreset => 'Yes / No';
+
+  @override
+  String get addExamples => 'Add example';
+
+  @override
+  String get foodOptions => 'Pizza\nChicken\nSalad';
+
+  @override
+  String get yesNoOptions => 'Yes\nNo';
+
+  @override
+  String get optionLimit => 'The wheel supports up to 12 options.';
+
+  @override
+  String get optionLengthLimit => 'Each option supports up to 60 characters.';
+
+  @override
+  String get optionDeleted => 'Option deleted.';
+
+  @override
+  String get undo => 'Undo';
+
+  @override
+  String get historyDeleted => 'History deleted.';
+
+  @override
+  String get sorting => 'Drawing…';
+
+  @override
+  String get playError => 'Unable to complete the play. Please try again.';
+
+  @override
+  String get saveError => 'Changes could not be saved on this device.';
+
+  @override
+  String get clearHistoryQuestion => 'Delete the play history?';
 }

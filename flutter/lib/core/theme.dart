@@ -10,8 +10,8 @@ ThemeData buildTheme() {
     secondary: AppPalette.accentDark,
     error: AppColors.red,
     onSurface: AppPalette.textPrimary,
-    onPrimary: Colors.white,
-    onSecondary: Colors.white,
+    onPrimary: AppPalette.background,
+    onSecondary: AppPalette.background,
   );
   final textTheme = base.textTheme
       .apply(

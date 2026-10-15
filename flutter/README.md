@@ -43,3 +43,26 @@ flutter build ipa --release
 - Activa TalkBack/VoiceOver y confirma que cada resultado se anuncia como “resultado: …”.
 - Prueba modo avión: todas las jugadas deben funcionar aunque no se cargue publicidad.
 - Prueba lector de pantalla, teclado y tamaños móvil/tablet; cada resultado debe anunciarse y el historial debe persistir tras reiniciar.
+
+## UX y jugadas
+
+- Durante una jugada se bloquean el selector de modo, el swipe entre modos y la edición de opciones.
+- La ruleta personalizada permite pegar una opción por línea (máximo 12, 60 caracteres cada una), agregar ejemplos y deshacer la última eliminación mientras el editor permanece abierto.
+- Las opciones se guardan en orden y cada jugada conserva una copia de su conjunto de opciones.
+- Los juegos permiten desplazamiento con teclado abierto o texto ampliado; las ruletas incluyen leyenda accesible. El ajuste de movimiento reducido del dispositivo evita la animación.
+
+## Firebase Analytics opcional
+
+La app incluye `firebase_core` y `firebase_analytics`, pero la colección queda desactivada por defecto hasta configurar un proyecto real. No se han incluido identificadores de Firebase de ejemplo ni de producción.
+
+Para Android/iOS, configura la app en Firebase y ejecuta con `--dart-define=ANALYTICS_ENABLED=true`. Se admite la configuración nativa habitual o proporcionar las opciones explícitas:
+
+```powershell
+flutter run --dart-define=ANALYTICS_ENABLED=true --dart-define=FIREBASE_API_KEY=... --dart-define=FIREBASE_APP_ID=... --dart-define=FIREBASE_MESSAGING_SENDER_ID=... --dart-define=FIREBASE_PROJECT_ID=...
+```
+
+En iOS puede proporcionarse también `FIREBASE_IOS_BUNDLE_ID`. Los datos pertenecen a la app registrada para la plataforma; no se deben reutilizar los App IDs entre Android e iOS. Si se usa configuración nativa Android, completa también la configuración de Google Services indicada por Firebase.
+
+Eventos: `play_start`, `play_result`, `settings_changed`, `ad_impression_banner` desde la impresión real, y `ad_error`. Los booleanos se envían como 0/1. Un fallo o timeout de inicialización no bloquea el juego; Windows no inicializa Analytics. La web estática continúa sin Analytics.
+
+La descarga de dependencias Android requiere que Java confíe en los certificados HTTPS de Google Maven y Maven Central. Un error `PKIX path building failed` impide validar el APK hasta corregir el almacén de confianza del entorno.

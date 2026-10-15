@@ -176,4 +176,60 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get customColor => 'personalizado';
+
+  @override
+  String get editOptions => 'Editar opciones';
+
+  @override
+  String get equalChance => 'Todas las opciones tienen la misma probabilidad.';
+
+  @override
+  String get bulkOptions => 'Opciones, una por línea';
+
+  @override
+  String get optionsHelp =>
+      'Una opción por línea · Hasta 60 caracteres por opción · Máximo 12.';
+
+  @override
+  String get foodPreset => 'Qué comemos';
+
+  @override
+  String get yesNoPreset => 'Sí / No';
+
+  @override
+  String get addExamples => 'Agregar ejemplo';
+
+  @override
+  String get foodOptions => 'Pizza\nPollo\nEnsalada';
+
+  @override
+  String get yesNoOptions => 'Sí\nNo';
+
+  @override
+  String get optionLimit => 'La ruleta admite un máximo de 12 opciones.';
+
+  @override
+  String get optionLengthLimit => 'Cada opción admite hasta 60 caracteres.';
+
+  @override
+  String get optionDeleted => 'Opción eliminada.';
+
+  @override
+  String get undo => 'Deshacer';
+
+  @override
+  String get historyDeleted => 'Historial eliminado.';
+
+  @override
+  String get sorting => 'Sorteando…';
+
+  @override
+  String get playError => 'No se pudo completar la jugada. Inténtalo de nuevo.';
+
+  @override
+  String get saveError =>
+      'No se pudieron guardar los cambios en este dispositivo.';
+
+  @override
+  String get clearHistoryQuestion => '¿Eliminar el historial de jugadas?';
 }

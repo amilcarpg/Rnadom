@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -50,16 +51,27 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   Future<void> _loadBanner() async {
+    if (context.read<PlayProvider>().playing) return;
     _loadingBanner = true;
     final ads = context.read<AdsService>();
     final analytics = context.read<AnalyticsService>();
     try {
       await ads.init();
-      if (!mounted || ads.bannerAdUnitId.isEmpty) return;
+      if (!mounted ||
+          context.read<PlayProvider>().playing ||
+          ads.bannerAdUnitId.isEmpty) {
+        return;
+      }
       final size =
-          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-              MediaQuery.sizeOf(context).width.truncate());
-      if (!mounted || size == null) return;
+          await AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(math
+              .min(
+                  MediaQuery.sizeOf(context).width -
+                      MediaQuery.paddingOf(context).horizontal,
+                  AppSizes.contentWidth)
+              .truncate());
+      if (!mounted || context.read<PlayProvider>().playing || size == null) {
+        return;
+      }
       final ad = BannerAd(
         size: size,
         adUnitId: ads.bannerAdUnitId,
@@ -71,8 +83,9 @@ class _HomeScreenState extends State<HomeScreen>
               return;
             }
             setState(() => _banner = loadedAd as BannerAd);
-            unawaited(analytics.logEvent('ad_impression_banner', const {}));
           },
+          onAdImpression: (_) =>
+              unawaited(analytics.logEvent('ad_impression_banner', const {})),
           onAdFailedToLoad: (failedAd, error) {
             failedAd.dispose();
             unawaited(analytics.logEvent(
@@ -109,7 +122,7 @@ class _HomeScreenState extends State<HomeScreen>
           gradient: RadialGradient(
             center: Alignment(0, -1.15),
             radius: 1.35,
-            colors: [Color(0xFF123656), AppPalette.background],
+            colors: [AppPalette.glow, AppPalette.background],
           ),
         ),
         child: SafeArea(
@@ -132,8 +145,6 @@ class _HomeScreenState extends State<HomeScreen>
                                   .titleLarge
                                   ?.copyWith(
                                       color: AppPalette.textPrimary,
-                                      fontFamily: 'serif',
-                                      fontSize: 30,
                                       fontWeight: FontWeight.w800)),
                         ),
                         IconButton(
@@ -155,13 +166,15 @@ class _HomeScreenState extends State<HomeScreen>
                           .localizedName(context),
                       icon: _modeIcon(_activeMode),
                       semanticLabel: l10n.selectMode,
-                      onPressed: _openModeSelector,
+                      onPressed: playing ? null : _openModeSelector,
                     ),
                   ),
                   const SizedBox(height: Spacing.m),
                   Expanded(
                     child: TabBarView(
                       controller: _tabs,
+                      physics:
+                          playing ? const NeverScrollableScrollPhysics() : null,
                       children: const [
                         CoinScreen(),
                         NumberScreen(),
@@ -180,17 +193,14 @@ class _HomeScreenState extends State<HomeScreen>
                               horizontal: Spacing.xl, vertical: Spacing.s),
                           child: _GradientCTA(
                             enabled: enabled,
-                            onPressed: enabled
-                                ? () => context
-                                    .read<PlayProvider>()
-                                    .requestPlay(_activeMode)
-                                : null,
+                            onPressed: enabled ? _requestPlay : null,
                             text: playing ? l10n.playing : l10n.play,
                           ),
                         ),
                         if (_banner != null)
                           SizedBox(
                               height: _banner!.size.height.toDouble(),
+                              width: _banner!.size.width.toDouble(),
                               child: AdWidget(ad: _banner!)),
                       ],
                     ),
@@ -204,6 +214,16 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
+  Future<void> _requestPlay() async {
+    try {
+      await context.read<PlayProvider>().requestPlay(_activeMode);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.playError)));
+    }
+  }
+
   void _openSettings() {
     showModalBottomSheet<void>(
       context: context,
@@ -211,7 +231,8 @@ class _HomeScreenState extends State<HomeScreen>
       builder: (_) => Consumer<SettingsProvider>(
         builder: (context, settings, _) => Padding(
           padding: const EdgeInsets.all(Spacing.l),
-          child: Column(
+          child: SingleChildScrollView(
+              child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               SwitchListTile.adaptive(
@@ -252,13 +273,14 @@ class _HomeScreenState extends State<HomeScreen>
                         localeCode: value, clearLocale: value == null)),
               ),
             ],
-          ),
+          )),
         ),
       ),
     );
   }
 
   void _openModeSelector() {
+    if (context.read<PlayProvider>().playing) return;
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -269,9 +291,8 @@ class _HomeScreenState extends State<HomeScreen>
           child: Padding(
             padding: const EdgeInsets.fromLTRB(
                 Spacing.l, Spacing.s, Spacing.l, Spacing.l),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+            child: ListView(
+              shrinkWrap: true,
               children: [
                 Text(l10n.selectMode,
                     style: Theme.of(sheetContext).textTheme.titleLarge),
@@ -301,7 +322,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _selectMode(BuildContext sheetContext, ModeId mode) {
     Navigator.pop(sheetContext);
-    if (mode == _activeMode) return;
+    if (context.read<PlayProvider>().playing || mode == _activeMode) return;
     setState(() => _activeMode = mode);
     _tabs.animateTo(modes.indexWhere((item) => item.id == mode));
   }
@@ -340,7 +361,8 @@ class _HomeScreenState extends State<HomeScreen>
         builder: (context, history, _) => Padding(
           padding: const EdgeInsets.all(Spacing.l),
           child: SizedBox(
-            height: 360,
+            height: math.min(AppSizes.historyHeight,
+                MediaQuery.sizeOf(context).height * .65),
             child: Column(
               children: [
                 Row(
@@ -349,7 +371,9 @@ class _HomeScreenState extends State<HomeScreen>
                         child: Text(AppLocalizations.of(context)!.history,
                             style: Theme.of(context).textTheme.titleLarge)),
                     TextButton(
-                        onPressed: history.items.isEmpty ? null : history.clear,
+                        onPressed: history.items.isEmpty
+                            ? null
+                            : () => _clearHistory(history),
                         child: Text(AppLocalizations.of(context)!.clear)),
                   ],
                 ),
@@ -368,7 +392,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 return ListTile(
                                   title: Text(item.value),
                                   subtitle: Text(
-                                      '${modes.firstWhere((mode) => mode.id == item.mode).localizedName(context)} · ${item.timestamp.toLocal()}'),
+                                      '${modes.firstWhere((mode) => mode.id == item.mode).localizedName(context)} · ${_formatDate(context, item.timestamp)}'),
                                 );
                               },
                             ),
@@ -379,6 +403,38 @@ class _HomeScreenState extends State<HomeScreen>
         ),
       ),
     );
+  }
+
+  String _formatDate(BuildContext context, DateTime timestamp) {
+    final date = timestamp.toLocal();
+    final material = MaterialLocalizations.of(context);
+    return '${material.formatMediumDate(date)} · ${material.formatTimeOfDay(TimeOfDay.fromDateTime(date), alwaysUse24HourFormat: MediaQuery.alwaysUse24HourFormatOf(context))}';
+  }
+
+  Future<void> _clearHistory(HistoryProvider history) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+              title: Text(l10n.clearHistoryQuestion),
+              actions: [
+                TextButton(
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: Text(l10n.cancel)),
+                FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: Text(l10n.clear)),
+              ],
+            ));
+    if (confirmed != true) return;
+    try {
+      await history.clear();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(l10n.saveError)));
+      }
+    }
   }
 }
 
@@ -396,13 +452,13 @@ class _GradientCTA extends StatelessWidget {
     final colors = [scheme.primary, scheme.secondary];
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: AppSizes.ctaHeight,
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
             padding: EdgeInsets.zero,
             backgroundColor: Colors.transparent,
-            foregroundColor: Colors.white),
+            foregroundColor: scheme.onPrimary),
         child: Ink(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -411,7 +467,7 @@ class _GradientCTA extends StatelessWidget {
                     : colors
                         .map((color) => color.withValues(alpha: .5))
                         .toList()),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.medium),
           ),
           child: Center(
               child: Text(text,
@@ -434,26 +490,27 @@ class _ModeSelector extends StatelessWidget {
   final String label;
   final IconData icon;
   final String semanticLabel;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
+      enabled: onPressed != null,
       label: semanticLabel,
       value: label,
       child: SizedBox(
         width: double.infinity,
-        height: 52,
+        height: AppSizes.selectorHeight,
         child: Material(
           color: AppPalette.surfaceStrong,
           shape: RoundedRectangleBorder(
             side: BorderSide(color: scheme.primary.withValues(alpha: .8)),
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.medium),
           ),
           child: InkWell(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(AppRadii.medium),
             onTap: onPressed,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: Spacing.m),

@@ -1,9 +1,16 @@
 import 'dart:math';
 
 class RngService {
-  final Random _secure;
-  final Random _fallback = Random();
-  RngService() : _secure = Random.secure();
+  late final Random _secure;
+  final Random _fallback;
+  RngService({Random Function()? secureFactory, Random? fallback})
+      : _fallback = fallback ?? Random() {
+    try {
+      _secure = (secureFactory ?? Random.secure)();
+    } catch (_) {
+      _secure = _fallback;
+    }
+  }
 
   bool nextBool() {
     try {

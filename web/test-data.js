@@ -21,3 +21,17 @@ save({ setItem: (key, value) => { saved = { key, value }; } }, normalized);
 assert.equal(saved.key, storageKey);
 assert.equal(JSON.parse(saved.value).options[0].label, 'Pizza');
 console.log('web data tests passed');
+
+const { parseRange, readableForeground } = require('./data.js');
+assert.equal(parseRange('', '10'), null);
+assert.equal(parseRange('1', ' '), null);
+assert.equal(parseRange('2.5', '10'), null);
+assert.equal(parseRange('10', '1'), null);
+assert.equal(parseRange('-1000000001', '10'), null);
+assert.deepEqual(parseRange('0', '10'), { min: 0, max: 10 });
+assert.deepEqual(parseRange('-1000000000', '1000000000'), { min: -1e9, max: 1e9 });
+assert.equal(readableForeground('#12D6C1'), '#000000');
+assert.equal(readableForeground('#2D7FF9'), '#000000');
+assert.equal(readableForeground('#E34D4D'), '#000000');
+assert.equal(readableForeground('#020d1b'), '#ffffff');
+console.log('web range and contrast regressions passed');

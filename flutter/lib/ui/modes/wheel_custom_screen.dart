@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants.dart';
+import '../../core/accessibility.dart';
 import '../../domain/option_item.dart';
 import '../../domain/result.dart';
 import '../../services/analytics_service.dart';
@@ -16,6 +17,8 @@ import '../../state/settings_provider.dart';
 import '../../state/history_provider.dart';
 import '../widgets/circular_wheel.dart';
 import '../widgets/result_card.dart';
+import '../widgets/game_viewport.dart';
+import '../widgets/options_editor.dart';
 import '../../l10n/app_localizations.dart';
 
 class WheelCustomScreen extends StatefulWidget {
@@ -32,19 +35,10 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
   late final AnimationController _controller;
   late final PlayProvider _playProvider;
   double _turns = 0;
-
-  static const palette = <Color>[
-    AppColors.yellow,
-    AppColors.blue,
-    AppColors.red,
-    AppColors.green,
-    AppColors.purple,
-    AppColors.cyan,
-    AppColors.orange,
-    AppColors.pink,
-    AppColors.indigo,
-    AppColors.lime,
-  ];
+  double _beginTurns = 0;
+  bool _loading = true;
+  bool _editing = false;
+  Future<void> _writeQueue = Future.value();
 
   @override
   void initState() {
@@ -69,29 +63,47 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
   Future<void> _load() async {
     final items = await context.read<StorageService>().loadCustomWheel();
     if (!mounted) return;
-    _replaceItems(items);
+    setState(() {
+      _items = List.unmodifiable(items);
+      _loading = false;
+    });
+    _playProvider.setAvailable(
+        ModeId.wheelCustom, !_editing && items.isNotEmpty);
   }
 
-  void _replaceItems(List<OptionItem> items) {
-    setState(() => _items = List.unmodifiable(items));
-    _playProvider.setAvailable(ModeId.wheelCustom, items.isNotEmpty);
+  Future<void> _replaceItems(List<OptionItem> items) async {
+    if (!mounted || _playProvider.playing) return;
+    final snapshot = List<OptionItem>.unmodifiable(items);
+    final storage = context.read<StorageService>();
+    setState(() {
+      _items = snapshot;
+      _selected = null;
+      _turns = 0;
+      _beginTurns = 0;
+      _controller.value = 0;
+    });
+    _playProvider.setAvailable(
+        ModeId.wheelCustom, !_editing && items.isNotEmpty);
+    final write = _writeQueue.then((_) => storage.saveCustomWheel(snapshot));
+    _writeQueue = write.catchError((_) {});
+    await write;
   }
-
-  Future<void> _save() =>
-      context.read<StorageService>().saveCustomWheel(_items);
 
   Future<void> _play() async {
-    if (_items.isEmpty) return;
-    final index = context.read<RngService>().nextIntInRange(0, _items.length);
+    if (_editing || _items.isEmpty) return;
+    final snapshot = List<OptionItem>.of(_items);
+    final index = context.read<RngService>().nextIntInRange(0, snapshot.length);
     final analytics = context.read<AnalyticsService>();
     setState(() {
       _selected = null;
-      _turns = 4 - index / _items.length;
+      _beginTurns = _turns;
+      _turns = _turns.ceilToDouble() + 3 - index / snapshot.length;
+      _controller.value = 0;
     });
     unawaited(analytics.logEvent('play_start', {'mode': 'wheel_custom'}));
-    await _controller.forward(from: 0);
+    if (!await finishPlayAnimation(_controller, context)) return;
     if (!mounted) return;
-    final item = _items[index];
+    final item = snapshot[index];
     setState(() => _selected = item);
     unawaited(context.read<HistoryProvider>().add(Result(
         mode: ModeId.wheelCustom,
@@ -104,323 +116,78 @@ class _WheelCustomScreenState extends State<WheelCustomScreen>
         .playResult(context.read<SettingsProvider>().settings));
   }
 
-  Future<void> _addOrEdit([OptionItem? item]) async {
-    final l10n = AppLocalizations.of(context)!;
-    final controller = TextEditingController(text: item?.label ?? '');
-    Color color = item?.color ?? palette[_items.length % palette.length];
-    final result = await showDialog<OptionItem>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (_, setDialogState) => AlertDialog(
-          title: Text(item == null ? l10n.addOption : l10n.editOption),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                  controller: controller,
-                  autofocus: true,
-                  decoration: InputDecoration(labelText: l10n.optionText)),
-              const SizedBox(height: Spacing.l),
-              Wrap(
-                spacing: Spacing.s,
-                runSpacing: Spacing.s,
-                children: [
-                  for (final candidate in palette)
-                    Semantics(
-                      label: l10n.color(_colorName(candidate, l10n)),
-                      selected: candidate == color,
-                      button: true,
-                      child: IconButton(
-                        tooltip: l10n.color(_colorName(candidate, l10n)),
-                        onPressed: () =>
-                            setDialogState(() => color = candidate),
-                        icon: Icon(Icons.circle,
-                            color: candidate, size: AppSizes.minTouchTarget),
-                        style: IconButton.styleFrom(
-                            side: BorderSide(
-                                color: candidate == color
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                width: 2)),
-                      ),
-                    ),
-                ],
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-                onPressed: () => Navigator.pop(dialogContext),
-                child: Text(l10n.cancel)),
-            FilledButton(
-              onPressed: () {
-                final label = controller.text.trim();
-                if (label.isEmpty) return;
-                Navigator.pop(
-                    dialogContext,
-                    OptionItem(
-                        id: item?.id ??
-                            DateTime.now().microsecondsSinceEpoch.toString(),
-                        label: label,
-                        color: color));
-              },
-              child: Text(l10n.save),
-            ),
-          ],
-        ),
-      ),
-    );
-    controller.dispose();
-    if (!mounted || result == null) return;
-    final next = [..._items];
-    final index = next.indexWhere((candidate) => candidate.id == result.id);
-    if (index >= 0) {
-      next[index] = result;
-    } else if (next.length < 12) {
-      next.add(result);
-    }
-    _replaceItems(next);
-    await _save();
-  }
-
-  Future<void> _remove(OptionItem item) async {
-    final l10n = AppLocalizations.of(context)!;
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.deleteOption),
-        content: Text(l10n.deleteOptionConfirmation(item.label)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(l10n.cancel)),
-          FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(l10n.delete)),
-        ],
-      ),
-    );
-    if (!mounted || confirm != true) return;
-    _replaceItems(_items
-        .where((candidate) => candidate.id != item.id)
-        .toList(growable: false));
-    await _save();
-  }
-
-  Future<void> _openOptionsEditor() => showModalBottomSheet<void>(
+  Future<void> _openOptionsEditor() async {
+    if (_loading || _playProvider.playing) return;
+    _editing = true;
+    // Opening the editor makes the mode unavailable, including keyboard triggers.
+    _playProvider.setAvailable(ModeId.wheelCustom, false);
+    try {
+      await showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,
         showDragHandle: true,
-        builder: (sheetContext) => StatefulBuilder(
-          builder: (_, setSheetState) => SafeArea(
-            top: false,
-            child: SizedBox(
-              height: MediaQuery.sizeOf(sheetContext).height * .72,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    Spacing.l, Spacing.s, Spacing.l, Spacing.l),
-                child: Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text('Editar opciones',
-                              style:
-                                  Theme.of(sheetContext).textTheme.titleLarge),
-                        ),
-                        Text('${_items.length}/12',
-                            style: TextStyle(
-                                color:
-                                    Theme.of(sheetContext).colorScheme.primary,
-                                fontWeight: FontWeight.w700)),
-                      ],
-                    ),
-                    const SizedBox(height: Spacing.m),
-                    SizedBox(
-                      width: double.infinity,
-                      height: AppSizes.minTouchTarget,
-                      child: FilledButton.icon(
-                        onPressed: _items.length >= 12
-                            ? null
-                            : () async {
-                                await _addOrEdit();
-                                if (mounted) setSheetState(() {});
-                              },
-                        icon: const Icon(Icons.add),
-                        label:
-                            Text(AppLocalizations.of(sheetContext)!.addOption),
-                      ),
-                    ),
-                    const SizedBox(height: Spacing.m),
-                    Expanded(
-                      child: _items.isEmpty
-                          ? const _EmptyWheel()
-                          : ListView.separated(
-                              itemCount: _items.length,
-                              separatorBuilder: (_, __) =>
-                                  const SizedBox(height: Spacing.s),
-                              itemBuilder: (_, index) => _OptionTile(
-                                item: _items[index],
-                                onEdit: () async {
-                                  await _addOrEdit(_items[index]);
-                                  if (mounted) setSheetState(() {});
-                                },
-                                onRemove: () async {
-                                  await _remove(_items[index]);
-                                  if (mounted) setSheetState(() {});
-                                },
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
+        builder: (_) => OptionsEditor(items: _items, onChanged: _replaceItems),
       );
-
-  String _colorName(Color color, AppLocalizations l10n) {
-    if (color == AppColors.yellow) return l10n.yellow;
-    if (color == AppColors.blue) return l10n.blue;
-    if (color == AppColors.red) return l10n.red;
-    if (color == AppColors.green) return l10n.green;
-    return l10n.customColor;
+    } finally {
+      _editing = false;
+      if (mounted) {
+        _playProvider.setAvailable(ModeId.wheelCustom, _items.isNotEmpty);
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(l10n.wheelCustom,
-                    style: Theme.of(context).textTheme.titleLarge),
-              ),
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: scheme.primary.withValues(alpha: .16),
-                  borderRadius: BorderRadius.circular(AppRadii.pill),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: Spacing.m, vertical: Spacing.s),
-                  child: Text(l10n.optionsCount(_items.length),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: scheme.primary, fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: Spacing.m),
-          if (_items.isEmpty)
-            const Expanded(child: _EmptyWheel())
-          else ...[
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LayoutBuilder(
-                    builder: (context, constraints) => CircularWheel(
-                      items: _items,
-                      size: math.min(constraints.maxWidth * .72,
-                          constraints.maxHeight * .68),
-                      turns: Tween<double>(begin: 0, end: _turns).animate(
-                          CurvedAnimation(
-                              parent: _controller, curve: Curves.easeOutCubic)),
-                      selectedIndex: _selected == null
-                          ? null
-                          : _items
-                              .indexWhere((item) => item.id == _selected!.id),
-                    ),
-                  ),
-                  const SizedBox(height: Spacing.m),
-                  FractionallySizedBox(
-                    widthFactor: .9,
-                    child: ResultCard(
-                        value: _selected?.label, color: _selected?.color),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          const SizedBox(height: Spacing.s),
-          SizedBox(
-            width: double.infinity,
-            height: AppSizes.minTouchTarget,
-            child: FilledButton.icon(
-              onPressed: _openOptionsEditor,
-              icon: const Icon(Icons.tune),
-              label: const Text('Editar opciones'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _OptionTile extends StatelessWidget {
-  const _OptionTile(
-      {required this.item, required this.onEdit, required this.onRemove});
-
-  final OptionItem item;
-  final VoidCallback onEdit;
-  final VoidCallback onRemove;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: scheme.surface.withValues(alpha: .6),
-      borderRadius: BorderRadius.circular(AppRadii.small),
-      child: ListTile(
-        shape: RoundedRectangleBorder(
-            side: BorderSide(color: scheme.primary.withValues(alpha: .3)),
-            borderRadius: BorderRadius.circular(AppRadii.small)),
-        leading: Semantics(
-          label: l10n.colorOf(item.label),
-          child: CircleAvatar(backgroundColor: item.color),
-        ),
-        title: Text(item.label),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-                tooltip: l10n.edit(item.label),
-                onPressed: onEdit,
-                icon: const Icon(Icons.edit_outlined)),
-            IconButton(
-                tooltip: l10n.remove(item.label),
-                onPressed: onRemove,
-                icon: const Icon(Icons.delete_outline)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EmptyWheel extends StatelessWidget {
-  const _EmptyWheel();
-
-  @override
-  Widget build(BuildContext context) => Center(
+    final playing = context.select<PlayProvider, bool>((play) => play.playing);
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    return GameViewport(builder: (context, constraints) {
+      final wheelSize = math.min(constraints.maxWidth * .72,
+          math.max(AppSizes.coinSize, constraints.maxHeight * .42));
+      return Padding(
+        padding: const EdgeInsets.all(Spacing.l),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.add_circle_outline,
-                size: 64, color: Theme.of(context).colorScheme.primary),
+            Text(l10n.optionsCount(_items.length),
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: Spacing.m),
-            Text(AppLocalizations.of(context)!.addOneOption,
-                textAlign: TextAlign.center),
+            if (_items.isEmpty) ...[
+              Icon(Icons.add_circle_outline,
+                  size: AppSizes.emptyIcon,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(height: Spacing.m),
+              Text(l10n.addOneOption, textAlign: TextAlign.center),
+            ] else ...[
+              CircularWheel(
+                items: _items,
+                size: wheelSize,
+                turns: Tween<double>(begin: _beginTurns, end: _turns).animate(
+                    CurvedAnimation(
+                        parent: _controller, curve: Curves.easeOutCubic)),
+                selectedIndex: _selected == null
+                    ? null
+                    : _items.indexWhere((item) => item.id == _selected!.id),
+              ),
+              const SizedBox(height: Spacing.m),
+              ResultCard(value: _selected?.label, color: _selected?.color),
+            ],
+            const SizedBox(height: Spacing.m),
+            Text(l10n.equalChance,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: Spacing.m),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: playing ? null : _openOptionsEditor,
+                icon: const Icon(Icons.tune),
+                label: Text(l10n.editOptions),
+              ),
+            ),
           ],
         ),
       );
+    });
+  }
 }

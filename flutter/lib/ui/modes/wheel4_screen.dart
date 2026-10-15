@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants.dart';
+import '../../core/accessibility.dart';
+import '../widgets/game_viewport.dart';
 import '../../domain/option_item.dart';
 import '../../domain/result.dart';
 import '../../services/analytics_service.dart';
@@ -30,6 +32,7 @@ class _Wheel4ScreenState extends State<Wheel4Screen>
   late final PlayProvider _playProvider;
   int? _selected;
   double _turns = 0;
+  double _beginTurns = 0;
 
   List<OptionItem> _items(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -65,10 +68,12 @@ class _Wheel4ScreenState extends State<Wheel4Screen>
     final analytics = context.read<AnalyticsService>();
     setState(() {
       _selected = null;
-      _turns = 3 - index / items.length;
+      _beginTurns = _turns;
+      _turns = _turns.ceilToDouble() + 3 - index / items.length;
+      _controller.value = 0;
     });
     unawaited(analytics.logEvent('play_start', {'mode': 'wheel4'}));
-    await _controller.forward(from: 0);
+    if (!await finishPlayAnimation(_controller, context)) return;
     if (!mounted) return;
     final item = items[index];
     setState(() => _selected = index);
@@ -84,7 +89,7 @@ class _Wheel4ScreenState extends State<Wheel4Screen>
   @override
   Widget build(BuildContext context) {
     final items = _items(context);
-    return LayoutBuilder(
+    return GameViewport(
       builder: (context, constraints) {
         final wheelSize = math.min(
           constraints.maxWidth * .8,
@@ -97,12 +102,16 @@ class _Wheel4ScreenState extends State<Wheel4Screen>
               CircularWheel(
                 items: items,
                 size: wheelSize,
-                turns: Tween<double>(begin: 0, end: _turns).animate(
+                turns: Tween<double>(begin: _beginTurns, end: _turns).animate(
                     CurvedAnimation(
                         parent: _controller, curve: Curves.easeOutCubic)),
                 selectedIndex: _selected,
               ),
-              const SizedBox(height: Spacing.xl),
+              const SizedBox(height: Spacing.m),
+              Text(AppLocalizations.of(context)!.equalChance,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: Spacing.m),
               FractionallySizedBox(
                 widthFactor: .9,
                 child: ResultCard(

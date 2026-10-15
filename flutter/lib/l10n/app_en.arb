@@ -43,19 +43,73 @@
   "save": "Save",
   "deleteOption": "Delete option",
   "deleteOptionConfirmation": "Delete \"{label}\" from the wheel?",
-  "@deleteOptionConfirmation": {"placeholders": {"label": {"type": "Object"}}},
+  "@deleteOptionConfirmation": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "delete": "Delete",
   "add": "Add",
   "optionsCount": "{count}/12 options",
-  "@optionsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@optionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "addOneOption": "Add at least one option to play.",
   "color": "Color {name}",
-  "@color": {"placeholders": {"name": {"type": "Object"}}},
+  "@color": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
   "colorOf": "Color of {label}",
-  "@colorOf": {"placeholders": {"label": {"type": "Object"}}},
+  "@colorOf": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "edit": "Edit {label}",
-  "@edit": {"placeholders": {"label": {"type": "Object"}}},
+  "@edit": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "remove": "Delete {label}",
-  "@remove": {"placeholders": {"label": {"type": "Object"}}},
-  "customColor": "custom"
+  "@remove": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "customColor": "custom",
+  "editOptions": "Edit options",
+  "equalChance": "Every option has the same probability.",
+  "bulkOptions": "Options, one per line",
+  "optionsHelp": "One option per line · Up to 60 characters each · Maximum 12.",
+  "foodPreset": "What to eat",
+  "yesNoPreset": "Yes / No",
+  "addExamples": "Add example",
+  "foodOptions": "Pizza\nChicken\nSalad",
+  "yesNoOptions": "Yes\nNo",
+  "optionLimit": "The wheel supports up to 12 options.",
+  "optionLengthLimit": "Each option supports up to 60 characters.",
+  "optionDeleted": "Option deleted.",
+  "undo": "Undo",
+  "historyDeleted": "History deleted.",
+  "sorting": "Drawing…",
+  "playError": "Unable to complete the play. Please try again.",
+  "saveError": "Changes could not be saved on this device.",
+  "clearHistoryQuestion": "Delete the play history?"
 }

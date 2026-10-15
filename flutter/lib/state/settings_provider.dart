@@ -1,17 +1,21 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../domain/settings.dart';
 import '../services/storage_service.dart';
+import '../services/analytics_service.dart';
 
 class SettingsProvider extends ChangeNotifier {
   final StorageService storage;
+  final AnalyticsService? analytics;
   Settings _settings =
       const Settings(soundOn: true, hapticsOn: true, rangeMin: 1, rangeMax: 10);
   bool _loading = true;
   Object? _error;
   Future<void> _writeQueue = Future.value();
 
-  SettingsProvider({required this.storage});
+  SettingsProvider({required this.storage, this.analytics});
 
   Settings get settings => _settings;
   bool get loading => _loading;
@@ -30,8 +34,16 @@ class SettingsProvider extends ChangeNotifier {
   }
 
   Future<void> update(Settings next) async {
+    final previous = _settings;
     _settings = next;
     notifyListeners();
+    if (previous.soundOn != next.soundOn ||
+        previous.hapticsOn != next.hapticsOn) {
+      if (analytics != null) {
+        unawaited(analytics!.logEvent('settings_changed',
+            {'sound': next.soundOn, 'haptics': next.hapticsOn}));
+      }
+    }
     final write = _writeQueue.then<void>((_) => storage.saveSettings(next));
     // Keep later user changes writable even when an earlier disk write fails.
     _writeQueue = write.catchError((_) {});

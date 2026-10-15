@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants.dart';
+import '../../core/accessibility.dart';
+import '../widgets/game_viewport.dart';
 import '../../domain/result.dart';
 import '../../services/analytics_service.dart';
 import '../../services/feedback_service.dart';
@@ -81,13 +83,14 @@ class _NumberScreenState extends State<NumberScreen>
   }
 
   Future<void> _play() async {
+    FocusScope.of(context).unfocus();
     final range = _parseAndValidate();
     if (range == null) return;
     final analytics = context.read<AnalyticsService>();
     final rng = context.read<RngService>();
     unawaited(analytics.logEvent('play_start', {'mode': 'number'}));
     setState(() => _result = null);
-    await _controller.forward(from: 0);
+    if (!await finishPlayAnimation(_controller, context)) return;
     if (!mounted) return;
     final value = rng.nextIntInRange(range.key, range.value + 1);
     final result = '$value';
@@ -108,12 +111,11 @@ class _NumberScreenState extends State<NumberScreen>
     final loading =
         context.select<SettingsProvider, bool>((state) => state.loading);
     if (loading) return const Center(child: CircularProgressIndicator());
-    return LayoutBuilder(
+    return GameViewport(
       builder: (context, constraints) => Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: 520,
-            maxHeight: constraints.maxHeight,
+          constraints: const BoxConstraints(
+            maxWidth: AppSizes.contentWidth,
           ),
           child: Padding(
             padding: const EdgeInsets.all(Spacing.l),
@@ -179,13 +181,16 @@ class _NumberScreenState extends State<NumberScreen>
             height: AppSizes.numberInputHeight,
             child: TextField(
               controller: controller,
+              enabled: !context.watch<PlayProvider>().playing,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.displayLarge?.copyWith(
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: scheme.onSurface,
                     fontWeight: FontWeight.w700,
                     fontFamily: 'monospace',
                   ),
               keyboardType: const TextInputType.numberWithOptions(signed: true),
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _playProvider.requestPlay(ModeId.number),
               onChanged: (_) {
                 if (_error != null) setState(() => _error = null);
               },
@@ -218,10 +223,13 @@ class _FlipNumberCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final displayedValue = value ?? '—';
+    final playing = context.select<PlayProvider, bool>((play) => play.playing);
+    final displayedValue =
+        value ?? (playing ? AppLocalizations.of(context)!.sorting : '—');
     return Semantics(
       label: AppLocalizations.of(context)!.result,
-      value: value ?? '',
+      value: displayedValue,
+      excludeSemantics: true,
       liveRegion: true,
       child: Container(
         constraints:
@@ -241,7 +249,9 @@ class _FlipNumberCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: Spacing.l),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 320),
+                duration: MediaQuery.disableAnimationsOf(context)
+                    ? Duration.zero
+                    : const Duration(milliseconds: 320),
                 transitionBuilder: (child, animation) => RotationTransition(
                   turns: Tween<double>(begin: .5, end: 1).animate(animation),
                   child: FadeTransition(opacity: animation, child: child),

@@ -52,7 +52,22 @@
     return validHistory(entry) ? [entry, ...sanitizeHistory(history)].slice(0, MAX_HISTORY) : sanitizeHistory(history);
   }
 
-  const api = { load, save, appendHistory, sanitizeSettings, snapshot, maxHistory: MAX_HISTORY, maxOptions: MAX_OPTIONS, storageKey: STORAGE_KEY };
+  function parseRange(minText, maxText) {
+    if (!String(minText ?? '').trim() || !String(maxText ?? '').trim()) return null;
+    const min = Number(minText);
+    const max = Number(maxText);
+    return Number.isInteger(min) && Number.isInteger(max) && min < max && min >= -1e9 && max <= 1e9
+      ? { min, max } : null;
+  }
+
+  function readableForeground(color) {
+    const rgb = color.slice(1).match(/.{2}/g).map((part) => parseInt(part, 16) / 255)
+      .map((value) => value <= .04045 ? value / 12.92 : ((value + .055) / 1.055) ** 2.4);
+    const luminance = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722;
+    return (luminance + .05) / .05 >= 1.05 / (luminance + .05) ? '#000000' : '#ffffff';
+  }
+
+  const api = { parseRange, readableForeground, load, save, appendHistory, sanitizeSettings, snapshot, maxHistory: MAX_HISTORY, maxOptions: MAX_OPTIONS, storageKey: STORAGE_KEY };
   root.DecisorData = api;
   if (typeof module !== 'undefined') module.exports = api;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -47,6 +47,8 @@
 	<true/>
 <key>NSLocalNetworkUsageDescription</key>
 <string>Esta app necesita acceder a la red local para funcionar correctamente.</string>
+<key>FIREBASE_ANALYTICS_COLLECTION_ENABLED</key>
+<false/>
 <key>GADApplicationIdentifier</key>
 <string>$(ADMOB_APP_ID)</string>
 <key>NSBonjourServices</key>

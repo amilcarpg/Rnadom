@@ -43,19 +43,73 @@
   "save": "Guardar",
   "deleteOption": "Eliminar opción",
   "deleteOptionConfirmation": "¿Eliminar \"{label}\" de la ruleta?",
-  "@deleteOptionConfirmation": {"placeholders": {"label": {"type": "Object"}}},
+  "@deleteOptionConfirmation": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "delete": "Eliminar",
   "add": "Agregar",
   "optionsCount": "{count}/12 opciones",
-  "@optionsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@optionsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "addOneOption": "Agrega al menos una opción para jugar.",
   "color": "Color {name}",
-  "@color": {"placeholders": {"name": {"type": "Object"}}},
+  "@color": {
+    "placeholders": {
+      "name": {
+        "type": "Object"
+      }
+    }
+  },
   "colorOf": "Color de {label}",
-  "@colorOf": {"placeholders": {"label": {"type": "Object"}}},
+  "@colorOf": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "edit": "Editar {label}",
-  "@edit": {"placeholders": {"label": {"type": "Object"}}},
+  "@edit": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
   "remove": "Eliminar {label}",
-  "@remove": {"placeholders": {"label": {"type": "Object"}}},
-  "customColor": "personalizado"
+  "@remove": {
+    "placeholders": {
+      "label": {
+        "type": "Object"
+      }
+    }
+  },
+  "customColor": "personalizado",
+  "editOptions": "Editar opciones",
+  "equalChance": "Todas las opciones tienen la misma probabilidad.",
+  "bulkOptions": "Opciones, una por línea",
+  "optionsHelp": "Una opción por línea · Hasta 60 caracteres por opción · Máximo 12.",
+  "foodPreset": "Qué comemos",
+  "yesNoPreset": "Sí / No",
+  "addExamples": "Agregar ejemplo",
+  "foodOptions": "Pizza\nPollo\nEnsalada",
+  "yesNoOptions": "Sí\nNo",
+  "optionLimit": "La ruleta admite un máximo de 12 opciones.",
+  "optionLengthLimit": "Cada opción admite hasta 60 caracteres.",
+  "optionDeleted": "Opción eliminada.",
+  "undo": "Deshacer",
+  "historyDeleted": "Historial eliminado.",
+  "sorting": "Sorteando…",
+  "playError": "No se pudo completar la jugada. Inténtalo de nuevo.",
+  "saveError": "No se pudieron guardar los cambios en este dispositivo.",
+  "clearHistoryQuestion": "¿Eliminar el historial de jugadas?"
 }

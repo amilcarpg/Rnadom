@@ -409,6 +409,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'personalizado'**
   String get customColor;
+
+  /// No description provided for @editOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'Editar opciones'**
+  String get editOptions;
+
+  /// No description provided for @equalChance.
+  ///
+  /// In es, this message translates to:
+  /// **'Todas las opciones tienen la misma probabilidad.'**
+  String get equalChance;
+
+  /// No description provided for @bulkOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'Opciones, una por línea'**
+  String get bulkOptions;
+
+  /// No description provided for @optionsHelp.
+  ///
+  /// In es, this message translates to:
+  /// **'Una opción por línea · Hasta 60 caracteres por opción · Máximo 12.'**
+  String get optionsHelp;
+
+  /// No description provided for @foodPreset.
+  ///
+  /// In es, this message translates to:
+  /// **'Qué comemos'**
+  String get foodPreset;
+
+  /// No description provided for @yesNoPreset.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí / No'**
+  String get yesNoPreset;
+
+  /// No description provided for @addExamples.
+  ///
+  /// In es, this message translates to:
+  /// **'Agregar ejemplo'**
+  String get addExamples;
+
+  /// No description provided for @foodOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'Pizza\nPollo\nEnsalada'**
+  String get foodOptions;
+
+  /// No description provided for @yesNoOptions.
+  ///
+  /// In es, this message translates to:
+  /// **'Sí\nNo'**
+  String get yesNoOptions;
+
+  /// No description provided for @optionLimit.
+  ///
+  /// In es, this message translates to:
+  /// **'La ruleta admite un máximo de 12 opciones.'**
+  String get optionLimit;
+
+  /// No description provided for @optionLengthLimit.
+  ///
+  /// In es, this message translates to:
+  /// **'Cada opción admite hasta 60 caracteres.'**
+  String get optionLengthLimit;
+
+  /// No description provided for @optionDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Opción eliminada.'**
+  String get optionDeleted;
+
+  /// No description provided for @undo.
+  ///
+  /// In es, this message translates to:
+  /// **'Deshacer'**
+  String get undo;
+
+  /// No description provided for @historyDeleted.
+  ///
+  /// In es, this message translates to:
+  /// **'Historial eliminado.'**
+  String get historyDeleted;
+
+  /// No description provided for @sorting.
+  ///
+  /// In es, this message translates to:
+  /// **'Sorteando…'**
+  String get sorting;
+
+  /// No description provided for @playError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudo completar la jugada. Inténtalo de nuevo.'**
+  String get playError;
+
+  /// No description provided for @saveError.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron guardar los cambios en este dispositivo.'**
+  String get saveError;
+
+  /// No description provided for @clearHistoryQuestion.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Eliminar el historial de jugadas?'**
+  String get clearHistoryQuestion;
 }
 
 class _AppLocalizationsDelegate

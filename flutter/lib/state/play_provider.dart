@@ -4,6 +4,7 @@ import '../core/constants.dart';
 
 class PlayProvider extends ChangeNotifier {
   bool _playing = false;
+  bool _disposed = false;
   final Map<ModeId, Future<void> Function()> _actions = {};
   final Map<ModeId, bool> _availability = {};
 
@@ -27,7 +28,11 @@ class PlayProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  bool canPlay(ModeId mode) => !_playing && (_availability[mode] ?? false);
+  bool canPlay(ModeId mode) =>
+      !_disposed &&
+      !_playing &&
+      _actions.containsKey(mode) &&
+      (_availability[mode] ?? false);
 
   Future<void> requestPlay(ModeId mode) async {
     if (!canPlay(mode)) return;
@@ -37,17 +42,22 @@ class PlayProvider extends ChangeNotifier {
   }
 
   Future<T?> runLocked<T>(Future<T> Function() action) async {
-    if (_playing) return null;
+    if (_disposed || _playing) return null;
     try {
       _playing = true;
       notifyListeners();
       return await action();
-    } catch (e) {
-      // Log error if needed
-      rethrow;
     } finally {
       _playing = false;
-      notifyListeners();
+      if (!_disposed) notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _actions.clear();
+    _availability.clear();
+    super.dispose();
   }
 }
